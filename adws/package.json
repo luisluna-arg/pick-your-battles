@@ -1,0 +1,21 @@
+{
+  "name": "pick-your-battles-adws",
+  "version": "1.0.0",
+  "description": "AI Developer Workflows for Pick Your Battles",
+  "type": "module",
+  "scripts": {
+    "build": "tsc",
+    "type-check": "tsc --noEmit"
+  },
+  "dependencies": {
+    "glob": "^10.3.10",
+    "@aws-sdk/client-s3": "^3.504.0",
+    "dotenv": "^16.4.1",
+    "uuid": "^9.0.1"
+  },
+  "devDependencies": {
+    "@types/node": "^20.11.16",
+    "@types/uuid": "^9.0.7",
+    "typescript": "^5.3.3"
+  }
+}
