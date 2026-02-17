@@ -1,13 +1,15 @@
-# [Project Name]
+# Pick Your Battles
 
-> [One-line description of what this project does.]
+> A minimalist productivity tool that enforces focus by strictly limiting users to three concurrent tasks.
 
 ## Tech Stack
 
-- **Language**: [e.g., Python 3.12, TypeScript 5.x]
-- **Framework**: [e.g., FastAPI, Next.js, Spring Boot]
-- **Database**: [e.g., PostgreSQL, SQLite, none]
-- **Package Manager**: [e.g., uv, npm, bun, maven]
+- **Language**: TypeScript 5.x
+- **Framework**: Next.js (App Router)
+- **Database**: Neon (PostgreSQL)
+- **Styling**: Tailwind CSS
+- **Package Manager**: npm
+- **Deployment**: Vercel
 
 ## Directory Layout
 
@@ -27,20 +29,20 @@ project/
 
 ```bash
 # Install dependencies
-[your install command, e.g., uv sync / npm install / bun install]
+npm install
 
 # Run the application
-[your run command, e.g., uv run app.py / npm run dev / bun start]
+npm run dev
 
 # Run tests
-[your test command, e.g., uv run pytest / npm test / bun test]
+npm test
 ```
 
 ## Conventions
 
-- [e.g., Follow PEP 8 / ESLint config / Google Java Style]
+- Follow ESLint config
 - Write tests for all new features
-- Use type hints/annotations
+- Use TypeScript type annotations
 - Document complex logic with inline comments
 - Keep files under ~1000 lines
 - One responsibility per file
@@ -60,8 +62,16 @@ project/
 These commands validate the project has no regressions:
 
 ```bash
-[your lint command, e.g., uv run ruff check . / npm run lint]
-[your type check command, e.g., bun tsc --noEmit / mypy .]
-[your test command, e.g., uv run pytest / npm test]
-[your build command, e.g., bun run build / mvn package]
+npm run lint          # ESLint check
+npx tsc --noEmit      # TypeScript type check
+npm test              # Run test suite
+npm run build         # Production build
+```
+
+## Deployment
+
+Deploy to Vercel:
+```bash
+# Connect repo to Vercel dashboard or use CLI
+vercel deploy
 ```
