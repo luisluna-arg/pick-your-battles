@@ -4,9 +4,9 @@
 
 ## The Concept
 
-**Pick Your Battles** is a task management tool with a radical constraint: you can only have **3 active tasks** at any time.
+**Pick Your Battles** is a task management tool with a radical constraint: you can only have a **limited number of active tasks** at any time (default: 3, configurable by user).
 
-When you try to add a fourth task, the system blocks you. You must either:
+When you try to exceed your task limit, the system blocks you. You must either:
 - ✅ Complete one of your current tasks
 - 🗑️ Delete a task that isn't a true priority
 

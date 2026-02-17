@@ -1,6 +1,6 @@
 # Pick Your Battles
 
-> A minimalist productivity tool that enforces focus by strictly limiting users to three concurrent tasks.
+> A minimalist productivity tool that enforces focus by limiting users to a configurable number of concurrent tasks (default: 3).
 
 ## Tech Stack
 
