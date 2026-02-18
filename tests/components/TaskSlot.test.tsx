@@ -62,6 +62,12 @@ describe('TaskSlot Component', () => {
       expect(screen.getByText('Add Task')).toBeInTheDocument()
     })
 
+    it('Add Task button has cursor-pointer class', () => {
+      render(<TaskSlot slotNumber={1} onAddTask={jest.fn()} />)
+
+      expect(screen.getByLabelText('Add task to slot 1')).toHaveClass('cursor-pointer')
+    })
+
     it('does not render Add Task button when onAddTask not provided', () => {
       render(<TaskSlot slotNumber={1} />)
 
@@ -141,6 +147,19 @@ describe('TaskSlot Component', () => {
       createdAt: new Date(),
       updatedAt: new Date(),
     }
+
+    it('focus toggle button has cursor-pointer class', () => {
+      render(
+        <TaskSlot
+          slotNumber={1}
+          task={mockTask}
+          focusedTaskId={null}
+          onFocusToggle={jest.fn()}
+        />
+      )
+
+      expect(screen.getByLabelText(/Focus on this task/)).toHaveClass('cursor-pointer')
+    })
 
     it('renders focus button when onFocusToggle provided', () => {
       const mockOnFocusToggle = jest.fn()

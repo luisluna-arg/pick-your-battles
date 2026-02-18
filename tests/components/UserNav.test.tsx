@@ -47,6 +47,20 @@ describe('UserNav', () => {
     expect(screen.getByRole('button', { name: 'Sign Out' })).toBeInTheDocument();
   });
 
+  it('Sign Out button has cursor-pointer class', async () => {
+    mockedAuth.mockResolvedValue({
+      user: {
+        name: 'Test User',
+        email: 'test@example.com',
+        image: null,
+      },
+    });
+
+    render(await UserNav());
+
+    expect(screen.getByRole('button', { name: 'Sign Out' })).toHaveClass('cursor-pointer');
+  });
+
   it('renders user name and email for authenticated users', async () => {
     mockedAuth.mockResolvedValue({
       user: {
