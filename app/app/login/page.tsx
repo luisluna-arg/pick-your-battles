@@ -10,7 +10,7 @@ export default function LoginPage() {
             Pick Your Battles
           </h1>
           <p className="text-lg text-zinc-600 dark:text-zinc-400">
-            Focus on what matters. Limit yourself to 3 tasks at a time.
+            Focus on what matters. Limit yourself to a few tasks at a time.
           </p>
         </div>
 
