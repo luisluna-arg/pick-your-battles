@@ -113,7 +113,7 @@ export default function LandingPage() {
           >
             <button
               type="submit"
-              className="inline-flex items-center gap-3 rounded-lg bg-zinc-900 px-8 py-4 text-lg font-medium text-white transition-colors hover:bg-zinc-800 dark:bg-zinc-50 dark:text-zinc-900 dark:hover:bg-zinc-200"
+              className="inline-flex cursor-pointer items-center gap-3 rounded-lg bg-zinc-900 px-8 py-4 text-lg font-medium text-white transition-colors hover:bg-zinc-800 dark:bg-zinc-50 dark:text-zinc-900 dark:hover:bg-zinc-200"
             >
               <svg className="h-6 w-6" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                 <path
