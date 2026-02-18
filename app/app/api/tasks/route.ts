@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { requireAuth } from '@/lib/auth';
+import { resolveUserProfile } from '@/lib/auth';
 import { getUserTasks } from '@/lib/db/queries';
 import { createTask } from '@/lib/db/mutations';
 
@@ -9,18 +9,14 @@ import { createTask } from '@/lib/db/mutations';
  */
 export async function GET() {
   try {
-    const session = await requireAuth();
-    const tasks = await getUserTasks(session.user.id);
-
-    return NextResponse.json(tasks, { status: 200 });
-  } catch (error) {
-    if (error instanceof Error && error.message.includes('Unauthorized')) {
-      return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 401 }
-      );
+    const profile = await resolveUserProfile();
+    if (!profile) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
+    const tasks = await getUserTasks(profile.id);
+    return NextResponse.json(tasks, { status: 200 });
+  } catch (error) {
     console.error('Error fetching tasks:', error);
     return NextResponse.json(
       { error: 'Internal server error' },
@@ -35,7 +31,11 @@ export async function GET() {
  */
 export async function POST(request: NextRequest) {
   try {
-    const session = await requireAuth();
+    const profile = await resolveUserProfile();
+    if (!profile) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
     const body = await request.json();
 
     // Validate required fields
@@ -53,30 +53,18 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Create task
-    const task = await createTask(session.user.id, {
+    // Create task using canonical DB user ID
+    const task = await createTask(profile.id, {
       title: body.title,
       description: body.description || null,
       position: body.position,
       status: body.status || 'pending',
-    }, session.user.email ?? undefined);
+    });
 
     return NextResponse.json(task, { status: 201 });
   } catch (error) {
-    if (error instanceof Error) {
-      if (error.message.includes('Unauthorized')) {
-        return NextResponse.json(
-          { error: 'Unauthorized' },
-          { status: 401 }
-        );
-      }
-
-      if (error.message.includes('Task limit reached')) {
-        return NextResponse.json(
-          { error: error.message },
-          { status: 400 }
-        );
-      }
+    if (error instanceof Error && error.message.includes('Task limit reached')) {
+      return NextResponse.json({ error: error.message }, { status: 400 });
     }
 
     console.error('Error creating task:', error);

@@ -43,8 +43,11 @@ export async function createTask(
     throw new Error('User not found');
   }
 
+  // Use canonical DB user ID (handles OAuth ID rotation in session)
+  const dbUserId = user.id;
+
   // Check user's personal task limit
-  const currentCount = await getTaskCount(userId);
+  const currentCount = await getTaskCount(dbUserId);
   if (currentCount >= user.maxTasks) {
     throw new Error(
       `Task limit reached. You can only have ${user.maxTasks} tasks at a time.`
@@ -55,7 +58,7 @@ export async function createTask(
     .insert(tasks)
     .values({
       ...data,
-      userId,
+      userId: dbUserId,
     })
     .returning();
 

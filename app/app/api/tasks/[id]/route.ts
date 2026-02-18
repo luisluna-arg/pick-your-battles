@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { requireAuth } from '@/lib/auth';
+import { resolveUserProfile } from '@/lib/auth';
 import { updateTask, deleteTask } from '@/lib/db/mutations';
 
 /**
@@ -11,7 +11,11 @@ export async function PATCH(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const session = await requireAuth();
+    const profile = await resolveUserProfile();
+    if (!profile) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
     const { id } = await params;
     const taskId = parseInt(id, 10);
 
@@ -24,8 +28,8 @@ export async function PATCH(
 
     const body = await request.json();
 
-    // Update task
-    const task = await updateTask(taskId, session.user.id, body);
+    // Update task using canonical DB user ID for ownership check
+    const task = await updateTask(taskId, profile.id, body);
 
     if (!task) {
       return NextResponse.json(
@@ -36,13 +40,6 @@ export async function PATCH(
 
     return NextResponse.json(task, { status: 200 });
   } catch (error) {
-    if (error instanceof Error && error.message.includes('Unauthorized')) {
-      return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 401 }
-      );
-    }
-
     console.error('Error updating task:', error);
     return NextResponse.json(
       { error: 'Internal server error' },
@@ -60,7 +57,11 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const session = await requireAuth();
+    const profile = await resolveUserProfile();
+    if (!profile) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
     const { id } = await params;
     const taskId = parseInt(id, 10);
 
@@ -71,8 +72,8 @@ export async function DELETE(
       );
     }
 
-    // Delete task
-    const deleted = await deleteTask(taskId, session.user.id);
+    // Delete task using canonical DB user ID for ownership check
+    const deleted = await deleteTask(taskId, profile.id);
 
     if (!deleted) {
       return NextResponse.json(
@@ -83,13 +84,6 @@ export async function DELETE(
 
     return new NextResponse(null, { status: 204 });
   } catch (error) {
-    if (error instanceof Error && error.message.includes('Unauthorized')) {
-      return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 401 }
-      );
-    }
-
     console.error('Error deleting task:', error);
     return NextResponse.json(
       { error: 'Internal server error' },
