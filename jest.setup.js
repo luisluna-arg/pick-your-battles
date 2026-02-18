@@ -16,14 +16,7 @@ jest.mock('next/navigation', () => ({
   useParams: jest.fn(() => ({})),
 }))
 
-// Mock Next.js Image component
-jest.mock('next/image', () => ({
-  __esModule: true,
-  default: function Image(props) {
-    // eslint-disable-next-line @next/next/no-img-element, jsx-a11y/alt-text
-    return require('react').createElement('img', props)
-  },
-}))
+// next/link and next/image are mapped to stubs via moduleNameMapper in jest.config.js
 
 // Mock Auth.js
 jest.mock('./app/auth', () => ({
