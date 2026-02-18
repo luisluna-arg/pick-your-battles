@@ -1,0 +1,52 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22.x'
+          cache: 'npm'
+
+      - name: Install root dependencies
+        run: npm ci
+
+      - name: Install app dependencies
+        run: npm ci
+        working-directory: ./app
+
+      - name: Run linter
+        run: npm run lint
+        working-directory: ./app
+
+      - name: Run TypeScript check
+        run: npx tsc --noEmit
+        working-directory: ./app
+
+      - name: Run tests
+        run: npm test
+        working-directory: ./app
+        env:
+          AUTH_SECRET: test-secret
+          GOOGLE_CLIENT_ID: test-client-id
+          GOOGLE_CLIENT_SECRET: test-client-secret
+
+      - name: Build application
+        run: npm run build
+        working-directory: ./app
+        env:
+          AUTH_SECRET: test-secret
+          GOOGLE_CLIENT_ID: test-client-id
+          GOOGLE_CLIENT_SECRET: test-client-secret
