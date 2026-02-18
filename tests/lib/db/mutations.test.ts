@@ -227,6 +227,144 @@ describe('Database Mutations', () => {
 
       expect(mockDb.insert).not.toHaveBeenCalled();
     });
+
+    it('allows task creation with maxTasks=1 boundary', async () => {
+      mockGetUserProfile.mockResolvedValue({
+        id: 'user-1',
+        email: 'test@example.com',
+        name: 'Test User',
+        image: null,
+        displayName: 'test@example.com',
+        maxTasks: 1, // Minimum practical limit
+        createdAt: new Date(),
+      });
+      mockGetTaskCount.mockResolvedValue(0); // No tasks yet
+
+      const mockTask = {
+        id: 1,
+        userId: 'user-1',
+        title: 'Only Task',
+        description: null,
+        status: 'pending',
+        position: 1,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      };
+
+      const mockQuery = {
+        values: jest.fn().mockReturnThis(),
+        returning: jest.fn().mockResolvedValue([mockTask]),
+      };
+
+      mockDb.insert.mockReturnValue(mockQuery as any);
+
+      const result = await createTask('user-1', {
+        title: 'Only Task',
+        position: 1,
+      });
+
+      expect(result).toEqual(mockTask);
+    });
+
+    it('rejects task creation when maxTasks=1 and limit reached', async () => {
+      mockGetUserProfile.mockResolvedValue({
+        id: 'user-1',
+        email: 'test@example.com',
+        name: 'Test User',
+        image: null,
+        displayName: 'test@example.com',
+        maxTasks: 1,
+        createdAt: new Date(),
+      });
+      mockGetTaskCount.mockResolvedValue(1); // Already has 1 task
+
+      await expect(
+        createTask('user-1', {
+          title: 'Second Task',
+          position: 2,
+        })
+      ).rejects.toThrow('Task limit reached. You can only have 1 tasks at a time.');
+
+      expect(mockDb.insert).not.toHaveBeenCalled();
+    });
+
+    it('allows task creation with maxTasks=10 boundary', async () => {
+      mockGetUserProfile.mockResolvedValue({
+        id: 'user-1',
+        email: 'test@example.com',
+        name: 'Test User',
+        image: null,
+        displayName: 'test@example.com',
+        maxTasks: 10, // Maximum allowed limit
+        createdAt: new Date(),
+      });
+      mockGetTaskCount.mockResolvedValue(9); // 9 tasks, can add one more
+
+      const mockTask = {
+        id: 10,
+        userId: 'user-1',
+        title: 'Tenth Task',
+        description: null,
+        status: 'pending',
+        position: 10,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      };
+
+      const mockQuery = {
+        values: jest.fn().mockReturnThis(),
+        returning: jest.fn().mockResolvedValue([mockTask]),
+      };
+
+      mockDb.insert.mockReturnValue(mockQuery as any);
+
+      const result = await createTask('user-1', {
+        title: 'Tenth Task',
+        position: 10,
+      });
+
+      expect(result).toEqual(mockTask);
+    });
+
+    it('creates task at exact limit boundary successfully', async () => {
+      mockGetUserProfile.mockResolvedValue({
+        id: 'user-1',
+        email: 'test@example.com',
+        name: 'Test User',
+        image: null,
+        displayName: 'test@example.com',
+        maxTasks: 3,
+        createdAt: new Date(),
+      });
+      mockGetTaskCount.mockResolvedValue(2); // 2 of 3, should allow 3rd
+
+      const mockTask = {
+        id: 3,
+        userId: 'user-1',
+        title: 'Third Task',
+        description: null,
+        status: 'pending',
+        position: 3,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      };
+
+      const mockQuery = {
+        values: jest.fn().mockReturnThis(),
+        returning: jest.fn().mockResolvedValue([mockTask]),
+      };
+
+      mockDb.insert.mockReturnValue(mockQuery as any);
+
+      const result = await createTask('user-1', {
+        title: 'Third Task',
+        position: 3,
+      });
+
+      expect(result).toEqual(mockTask);
+      // Verify it checks the limit but allows creation
+      expect(mockGetTaskCount).toHaveBeenCalledWith('user-1');
+    });
   });
 
   describe('updateTask', () => {
