@@ -3,16 +3,13 @@
 import { useState } from 'react';
 
 interface SettingsFormProps {
-  initialDisplayName: string | null;
   initialMaxTasks: number;
   userId: string;
 }
 
 export default function SettingsForm({
-  initialDisplayName,
   initialMaxTasks,
 }: SettingsFormProps) {
-  const [displayName, setDisplayName] = useState(initialDisplayName || '');
   const [maxTasks, setMaxTasks] = useState(initialMaxTasks);
   const [isLoading, setIsLoading] = useState(false);
   const [message, setMessage] = useState<{
@@ -32,7 +29,6 @@ export default function SettingsForm({
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          displayName: displayName.trim() || null,
           maxTasks,
         }),
       });
@@ -56,29 +52,6 @@ export default function SettingsForm({
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
-      {/* Display Name Field */}
-      <div>
-        <label
-          htmlFor="displayName"
-          className="block text-sm font-medium text-zinc-900 dark:text-zinc-50"
-        >
-          Display Name
-        </label>
-        <input
-          type="text"
-          id="displayName"
-          value={displayName}
-          onChange={(e) => setDisplayName(e.target.value)}
-          maxLength={50}
-          className="mt-2 block w-full rounded-md border border-zinc-300 bg-white px-3 py-2 text-zinc-900 shadow-sm focus:border-zinc-900 focus:outline-none focus:ring-1 focus:ring-zinc-900 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-50 dark:focus:border-zinc-50 dark:focus:ring-zinc-50"
-          placeholder="Enter your display name"
-          disabled={isLoading}
-        />
-        <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">
-          Maximum 50 characters
-        </p>
-      </div>
-
       {/* Max Tasks Field */}
       <div>
         <label

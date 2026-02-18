@@ -17,7 +17,6 @@ const mockUser: User = {
   email: 'test@example.com',
   name: 'Test User',
   image: null,
-  displayName: 'Test',
   maxTasks: 5,
   createdAt: new Date('2024-01-01'),
 };

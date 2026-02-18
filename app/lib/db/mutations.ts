@@ -12,7 +12,6 @@ export async function upsertUser(data: InsertUser): Promise<User> {
     .insert(users)
     .values({
       ...data,
-      displayName: data.displayName || data.email, // Default to email if not provided
       maxTasks: data.maxTasks ?? 3, // Default to 3 if not provided
     })
     .onConflictDoUpdate({
@@ -101,11 +100,11 @@ export async function deleteTask(
 
 /**
  * Update user profile settings
- * Allows updating displayName and maxTasks
+ * Allows updating maxTasks
  */
 export async function updateUserProfile(
   userId: string,
-  data: { displayName?: string; maxTasks?: number }
+  data: { maxTasks?: number }
 ): Promise<User | null> {
   // Validate maxTasks if provided (must be >= 1 and <= 10)
   if (data.maxTasks !== undefined && (data.maxTasks < 1 || data.maxTasks > 10)) {
@@ -113,9 +112,6 @@ export async function updateUserProfile(
   }
 
   const updateData: Partial<User> = {};
-  if (data.displayName !== undefined) {
-    updateData.displayName = data.displayName;
-  }
   if (data.maxTasks !== undefined) {
     updateData.maxTasks = data.maxTasks;
   }

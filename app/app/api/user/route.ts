@@ -36,7 +36,6 @@ export async function GET() {
  *
  * Request Body:
  * {
- *   displayName?: string,  // User's display name (max 50 characters, empty string allowed)
  *   maxTasks?: number      // Maximum concurrent tasks (integer, range 1-10)
  * }
  *
@@ -63,24 +62,9 @@ export async function PATCH(request: Request) {
 
     // Parse request body
     const body = await request.json();
-    const { displayName, maxTasks } = body;
+    const { maxTasks } = body;
 
     // Validate input
-    if (displayName !== undefined) {
-      if (typeof displayName !== 'string') {
-        return NextResponse.json(
-          { error: 'Display name must be a string' },
-          { status: 400 }
-        );
-      }
-      if (displayName.length > 50) {
-        return NextResponse.json(
-          { error: 'Display name must be 50 characters or less' },
-          { status: 400 }
-        );
-      }
-    }
-
     if (maxTasks !== undefined) {
       if (typeof maxTasks !== 'number' || !Number.isInteger(maxTasks)) {
         return NextResponse.json(
@@ -98,7 +82,6 @@ export async function PATCH(request: Request) {
 
     // Update user profile
     const updatedUser = await updateUserProfile(user.id!, {
-      displayName,
       maxTasks,
     });
 

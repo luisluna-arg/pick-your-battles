@@ -24,13 +24,12 @@ describe('Database Mutations', () => {
   });
 
   describe('upsertUser', () => {
-    it('creates user with displayName defaulting to email', async () => {
+    it('creates user with default maxTasks of 3', async () => {
       const mockUser = {
         id: 'user-1',
         email: 'test@example.com',
         name: 'Test User',
         image: 'https://example.com/avatar.jpg',
-        displayName: 'test@example.com',
         maxTasks: 3,
         createdAt: new Date(),
       };
@@ -54,18 +53,16 @@ describe('Database Mutations', () => {
       expect(result).toEqual(mockUser);
       expect(mockValues).toHaveBeenCalledWith(expect.objectContaining({
         email: 'test@example.com',
-        displayName: 'test@example.com', // Should default to email
         maxTasks: 3, // Should default to 3
       }));
     });
 
-    it('preserves provided displayName and maxTasks', async () => {
+    it('preserves provided maxTasks', async () => {
       const mockUser = {
         id: 'user-1',
         email: 'test@example.com',
         name: 'Test User',
         image: 'https://example.com/avatar.jpg',
-        displayName: 'Custom Name',
         maxTasks: 5,
         createdAt: new Date(),
       };
@@ -84,24 +81,21 @@ describe('Database Mutations', () => {
         email: 'test@example.com',
         name: 'Test User',
         image: 'https://example.com/avatar.jpg',
-        displayName: 'Custom Name',
         maxTasks: 5,
       });
 
       expect(result).toEqual(mockUser);
       expect(mockValues).toHaveBeenCalledWith(expect.objectContaining({
-        displayName: 'Custom Name', // Should preserve provided value
         maxTasks: 5, // Should preserve provided value
       }));
     });
 
-    it('does not update displayName and maxTasks on conflict', async () => {
+    it('does not update maxTasks on conflict', async () => {
       const mockUser = {
         id: 'user-1',
         email: 'updated@example.com',
         name: 'Updated Name',
         image: 'https://example.com/new-avatar.jpg',
-        displayName: 'Original Display Name',
         maxTasks: 3,
         createdAt: new Date(),
       };
@@ -124,7 +118,6 @@ describe('Database Mutations', () => {
 
       expect(mockOnConflict).toHaveBeenCalledWith(expect.objectContaining({
         set: expect.not.objectContaining({
-          displayName: expect.anything(),
           maxTasks: expect.anything(),
         }),
       }));
@@ -138,7 +131,6 @@ describe('Database Mutations', () => {
         email: 'test@example.com',
         name: 'Test User',
         image: null,
-        displayName: 'test@example.com',
         maxTasks: 3,
         createdAt: new Date(),
       });
@@ -179,7 +171,6 @@ describe('Database Mutations', () => {
         email: 'test@example.com',
         name: 'Test User',
         image: null,
-        displayName: 'test@example.com',
         maxTasks: 3,
         createdAt: new Date(),
       });
@@ -201,7 +192,6 @@ describe('Database Mutations', () => {
         email: 'test@example.com',
         name: 'Test User',
         image: null,
-        displayName: 'test@example.com',
         maxTasks: 5, // Custom limit
         createdAt: new Date(),
       });
@@ -234,7 +224,6 @@ describe('Database Mutations', () => {
         email: 'test@example.com',
         name: 'Test User',
         image: null,
-        displayName: 'test@example.com',
         maxTasks: 1, // Minimum practical limit
         createdAt: new Date(),
       });
@@ -272,7 +261,6 @@ describe('Database Mutations', () => {
         email: 'test@example.com',
         name: 'Test User',
         image: null,
-        displayName: 'test@example.com',
         maxTasks: 1,
         createdAt: new Date(),
       });
@@ -294,7 +282,6 @@ describe('Database Mutations', () => {
         email: 'test@example.com',
         name: 'Test User',
         image: null,
-        displayName: 'test@example.com',
         maxTasks: 10, // Maximum allowed limit
         createdAt: new Date(),
       });
@@ -332,7 +319,6 @@ describe('Database Mutations', () => {
         email: 'test@example.com',
         name: 'Test User',
         image: null,
-        displayName: 'test@example.com',
         maxTasks: 3,
         createdAt: new Date(),
       });
@@ -372,7 +358,6 @@ describe('Database Mutations', () => {
         email: 'test@example.com',
         name: 'Test User',
         image: null,
-        displayName: 'test@example.com',
         maxTasks: 3,
         createdAt: new Date(),
       });
@@ -415,7 +400,6 @@ describe('Database Mutations', () => {
         email: 'test@example.com',
         name: 'Test User',
         image: null,
-        displayName: 'test@example.com',
         maxTasks: 3,
         createdAt: new Date(),
       });
@@ -527,40 +511,12 @@ describe('Database Mutations', () => {
   });
 
   describe('updateUserProfile', () => {
-    it('updates displayName only', async () => {
-      const mockUser = {
-        id: 'user-1',
-        email: 'test@example.com',
-        name: 'Test User',
-        image: null,
-        displayName: 'New Display Name',
-        maxTasks: 3,
-        createdAt: new Date(),
-      };
-
-      const mockQuery = {
-        set: jest.fn().mockReturnThis(),
-        where: jest.fn().mockReturnThis(),
-        returning: jest.fn().mockResolvedValue([mockUser]),
-      };
-
-      mockDb.update.mockReturnValue(mockQuery as any);
-
-      const result = await updateUserProfile('user-1', {
-        displayName: 'New Display Name',
-      });
-
-      expect(result).toEqual(mockUser);
-      expect(mockQuery.set).toHaveBeenCalledWith({ displayName: 'New Display Name' });
-    });
-
     it('updates maxTasks only', async () => {
       const mockUser = {
         id: 'user-1',
         email: 'test@example.com',
         name: 'Test User',
         image: null,
-        displayName: 'test@example.com',
         maxTasks: 5,
         createdAt: new Date(),
       };
@@ -577,37 +533,6 @@ describe('Database Mutations', () => {
 
       expect(result).toEqual(mockUser);
       expect(mockQuery.set).toHaveBeenCalledWith({ maxTasks: 5 });
-    });
-
-    it('updates both displayName and maxTasks', async () => {
-      const mockUser = {
-        id: 'user-1',
-        email: 'test@example.com',
-        name: 'Test User',
-        image: null,
-        displayName: 'Custom Name',
-        maxTasks: 7,
-        createdAt: new Date(),
-      };
-
-      const mockQuery = {
-        set: jest.fn().mockReturnThis(),
-        where: jest.fn().mockReturnThis(),
-        returning: jest.fn().mockResolvedValue([mockUser]),
-      };
-
-      mockDb.update.mockReturnValue(mockQuery as any);
-
-      const result = await updateUserProfile('user-1', {
-        displayName: 'Custom Name',
-        maxTasks: 7,
-      });
-
-      expect(result).toEqual(mockUser);
-      expect(mockQuery.set).toHaveBeenCalledWith({
-        displayName: 'Custom Name',
-        maxTasks: 7,
-      });
     });
 
     it('throws error when maxTasks is less than 1', async () => {
@@ -636,37 +561,10 @@ describe('Database Mutations', () => {
       mockDb.update.mockReturnValue(mockQuery as any);
 
       const result = await updateUserProfile('nonexistent-user', {
-        displayName: 'Test',
+        maxTasks: 5,
       });
 
       expect(result).toBeNull();
-    });
-
-    it('allows empty string for displayName', async () => {
-      const mockUser = {
-        id: 'user-1',
-        email: 'test@example.com',
-        name: 'Test User',
-        image: null,
-        displayName: '',
-        maxTasks: 3,
-        createdAt: new Date(),
-      };
-
-      const mockQuery = {
-        set: jest.fn().mockReturnThis(),
-        where: jest.fn().mockReturnThis(),
-        returning: jest.fn().mockResolvedValue([mockUser]),
-      };
-
-      mockDb.update.mockReturnValue(mockQuery as any);
-
-      const result = await updateUserProfile('user-1', {
-        displayName: '',
-      });
-
-      expect(result).toEqual(mockUser);
-      expect(mockQuery.set).toHaveBeenCalledWith({ displayName: '' });
     });
 
     it('accepts boundary value maxTasks = 1', async () => {
@@ -675,7 +573,6 @@ describe('Database Mutations', () => {
         email: 'test@example.com',
         name: 'Test User',
         image: null,
-        displayName: 'test@example.com',
         maxTasks: 1,
         createdAt: new Date(),
       };
@@ -700,7 +597,6 @@ describe('Database Mutations', () => {
         email: 'test@example.com',
         name: 'Test User',
         image: null,
-        displayName: 'test@example.com',
         maxTasks: 10,
         createdAt: new Date(),
       };
