@@ -4,13 +4,16 @@
 import { GET } from '@/app/api/user/route';
 import { getCurrentUser } from '@/lib/auth';
 import { getUserProfile } from '@/lib/db/queries';
+import { upsertUser } from '@/lib/db/mutations';
 import type { User } from '@/lib/db/schema';
 
 jest.mock('@/lib/auth');
 jest.mock('@/lib/db/queries');
+jest.mock('@/lib/db/mutations');
 
 const mockGetCurrentUser = getCurrentUser as jest.MockedFunction<typeof getCurrentUser>;
 const mockGetUserProfile = getUserProfile as jest.MockedFunction<typeof getUserProfile>;
+const mockUpsertUser = upsertUser as jest.MockedFunction<typeof upsertUser>;
 
 const mockUser: User = {
   id: 'user-1',
@@ -36,7 +39,7 @@ describe('GET /api/user', () => {
     const data = await response.json();
     expect(data.maxTasks).toBe(5);
     expect(data.id).toBe('user-1');
-    expect(mockGetUserProfile).toHaveBeenCalledWith('user-1');
+    expect(mockGetUserProfile).toHaveBeenCalledWith('user-1', 'test@example.com');
   });
 
   it('returns 401 when not authenticated', async () => {
@@ -49,15 +52,20 @@ describe('GET /api/user', () => {
     expect(data).toEqual({ error: 'Unauthorized' });
   });
 
-  it('returns 404 when user not found in database', async () => {
-    mockGetCurrentUser.mockResolvedValue({ id: 'ghost', email: 'ghost@example.com' });
+  it('auto-creates user via upsert when not found in database', async () => {
+    mockGetCurrentUser.mockResolvedValue({ id: 'new-id', email: 'new@example.com', name: 'New User' });
     mockGetUserProfile.mockResolvedValue(null);
+    mockUpsertUser.mockResolvedValue({ ...mockUser, id: 'new-id', email: 'new@example.com' });
 
     const response = await GET();
 
-    expect(response.status).toBe(404);
-    const data = await response.json();
-    expect(data).toEqual({ error: 'User not found' });
+    expect(response.status).toBe(200);
+    expect(mockUpsertUser).toHaveBeenCalledWith({
+      id: 'new-id',
+      email: 'new@example.com',
+      name: 'New User',
+      image: null,
+    });
   });
 
   it('returns 500 on unexpected error', async () => {
