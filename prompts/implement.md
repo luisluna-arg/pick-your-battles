@@ -21,13 +21,14 @@ Follow the `Instructions` to implement the `Plan`, then `Report` the completed w
 - Include useful logging for potential error debugging
 - **CRITICAL: Write tests for all new code:**
   - For every logic change or new feature, you MUST create or update a corresponding test file
-  - Test files should be in a `__tests__` directory next to the code or in a root `tests/` folder
+  - **Test files location**: `tests/` directory at project root (NOT inside `app/`)
+  - Test file structure should mirror app structure: `app/components/Foo.tsx` → `tests/components/Foo.test.tsx`
   - If no test framework exists (Jest, Vitest), set it up FIRST before writing code
   - Tests must cover:
     - Core functionality and happy paths
     - Edge cases and error handling
     - Integration points with other modules
-  - Run `npm test` after writing tests to ensure they pass
+  - Run `npm test` from project root after writing tests to ensure they pass
   - **DO NOT proceed to commit without passing tests**
 - You must check the runtime logs or console output to ensure there are no silent failures or regressions.
 - Run all validation commands listed in the plan after implementation.

@@ -16,6 +16,7 @@
 ```
 project/
 ├── app/                    # Next.js application (routes, components, lib)
+├── tests/                  # Test files (mirrors app/ structure)
 ├── .claude/commands/       # Slash commands (bug, feature, chore, classify_issue)
 ├── adws/                   # AI Developer Workflows (TypeScript automation scripts)
 │   ├── adw_modules/        # Core workflow modules
@@ -54,7 +55,10 @@ npm test
 
 - **ALWAYS fetch and pull from main before starting any work** (`git fetch origin && git pull origin main`)
 - Follow ESLint config
-- Write tests for all new features
+- **Write tests for all new features in `tests/` directory**
+  - Test structure mirrors `app/` structure: `app/components/Foo.tsx` → `tests/components/Foo.test.tsx`
+  - Set up Jest/Vitest if not already configured
+  - Run `npm test` from root before committing
 - Use TypeScript type annotations
 - Document complex logic with inline comments
 - Keep files under ~1000 lines
