@@ -1,4 +1,5 @@
 import { auth } from "@/auth"
+import type { Session } from "next-auth"
 
 /**
  * Get the current session on the server-side
@@ -8,16 +9,24 @@ export async function getSession() {
 }
 
 /**
- * Get the current user or throw an error if not authenticated
+ * Session with guaranteed user and user ID
  */
-export async function requireAuth() {
+export type AuthenticatedSession = Session & {
+  user: NonNullable<Session['user']> & { id: string }
+}
+
+/**
+ * Get the current user or throw an error if not authenticated
+ * Returns a session with guaranteed user object and user ID
+ */
+export async function requireAuth(): Promise<AuthenticatedSession> {
   const session = await getSession()
 
-  if (!session?.user) {
+  if (!session?.user?.id) {
     throw new Error("Unauthorized: User must be authenticated")
   }
 
-  return session
+  return session as AuthenticatedSession
 }
 
 /**

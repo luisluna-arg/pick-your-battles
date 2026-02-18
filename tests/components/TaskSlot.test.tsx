@@ -1,42 +1,56 @@
 import { render, screen } from '@testing-library/react'
 import TaskSlot from '@/components/TaskSlot'
+import type { Task } from '@/lib/db/schema'
 
 describe('TaskSlot Component', () => {
-  it('renders with correct slot number', () => {
+  it('renders empty slot when no task provided', () => {
     render(<TaskSlot slotNumber={1} />)
 
-    expect(screen.getByText('Task Slot 1')).toBeInTheDocument()
+    expect(screen.getByText(/Empty Slot 1/)).toBeInTheDocument()
   })
 
-  it('renders with different slot numbers', () => {
-    const { rerender } = render(<TaskSlot slotNumber={2} />)
-    expect(screen.getByText('Task Slot 2')).toBeInTheDocument()
+  it('renders task when provided', () => {
+    const mockTask: Task = {
+      id: 1,
+      userId: 'user-1',
+      title: 'Test Task',
+      description: 'Test description',
+      status: 'pending',
+      position: 1,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    }
 
-    rerender(<TaskSlot slotNumber={3} />)
-    expect(screen.getByText('Task Slot 3')).toBeInTheDocument()
+    render(<TaskSlot slotNumber={1} task={mockTask} />)
+
+    expect(screen.getByText('Test Task')).toBeInTheDocument()
+    expect(screen.getByText('Test description')).toBeInTheDocument()
+    expect(screen.getByText('pending')).toBeInTheDocument()
   })
 
-  it('has correct styling classes', () => {
+  it('renders task without description', () => {
+    const mockTask: Task = {
+      id: 1,
+      userId: 'user-1',
+      title: 'Test Task',
+      description: null,
+      status: 'in-progress',
+      position: 1,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    }
+
+    render(<TaskSlot slotNumber={1} task={mockTask} />)
+
+    expect(screen.getByText('Test Task')).toBeInTheDocument()
+    expect(screen.queryByText('Test description')).not.toBeInTheDocument()
+    expect(screen.getByText('in-progress')).toBeInTheDocument()
+  })
+
+  it('has correct styling for empty slot', () => {
     render(<TaskSlot slotNumber={1} />)
 
-    const container = screen.getByText('Task Slot 1').closest('div')
-
+    const container = screen.getByText(/Empty Slot 1/).closest('div')
     expect(container).toHaveClass('text-center')
-    expect(container?.parentElement).toHaveClass(
-      'flex',
-      'items-center',
-      'justify-center'
-    )
-  })
-
-  it('renders with proper structure', () => {
-    const { container } = render(<TaskSlot slotNumber={1} />)
-
-    // Check that the main container exists
-    const mainDiv = container.firstChild
-    expect(mainDiv).toBeInTheDocument()
-
-    // Check that text is rendered
-    expect(screen.getByText('Task Slot 1')).toBeInTheDocument()
   })
 })
