@@ -365,6 +365,90 @@ describe('Database Mutations', () => {
       // Verify it checks the limit but allows creation
       expect(mockGetTaskCount).toHaveBeenCalledWith('user-1');
     });
+
+    it('allows task creation after completing a task at limit', async () => {
+      mockGetUserProfile.mockResolvedValue({
+        id: 'user-1',
+        email: 'test@example.com',
+        name: 'Test User',
+        image: null,
+        displayName: 'test@example.com',
+        maxTasks: 3,
+        createdAt: new Date(),
+      });
+
+      // User has 2 active tasks (completed tasks excluded by getTaskCount)
+      // Even if user has 3 total tasks (1 completed + 2 active), they can create new task
+      mockGetTaskCount.mockResolvedValue(2);
+
+      const mockTask = {
+        id: 4,
+        userId: 'user-1',
+        title: 'New Task After Completion',
+        description: null,
+        status: 'pending',
+        position: 4,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      };
+
+      const mockQuery = {
+        values: jest.fn().mockReturnThis(),
+        returning: jest.fn().mockResolvedValue([mockTask]),
+      };
+
+      mockDb.insert.mockReturnValue(mockQuery as any);
+
+      const result = await createTask('user-1', {
+        title: 'New Task After Completion',
+        position: 4,
+      });
+
+      expect(result).toEqual(mockTask);
+      // Verify getTaskCount was called (which now excludes completed tasks)
+      expect(mockGetTaskCount).toHaveBeenCalledWith('user-1');
+    });
+
+    it('allows creation when all previous tasks are completed', async () => {
+      mockGetUserProfile.mockResolvedValue({
+        id: 'user-1',
+        email: 'test@example.com',
+        name: 'Test User',
+        image: null,
+        displayName: 'test@example.com',
+        maxTasks: 3,
+        createdAt: new Date(),
+      });
+
+      // User has 0 active tasks (all completed)
+      mockGetTaskCount.mockResolvedValue(0);
+
+      const mockTask = {
+        id: 5,
+        userId: 'user-1',
+        title: 'Fresh Start Task',
+        description: null,
+        status: 'pending',
+        position: 1,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      };
+
+      const mockQuery = {
+        values: jest.fn().mockReturnThis(),
+        returning: jest.fn().mockResolvedValue([mockTask]),
+      };
+
+      mockDb.insert.mockReturnValue(mockQuery as any);
+
+      const result = await createTask('user-1', {
+        title: 'Fresh Start Task',
+        position: 1,
+      });
+
+      expect(result).toEqual(mockTask);
+      expect(mockGetTaskCount).toHaveBeenCalledWith('user-1');
+    });
   });
 
   describe('updateTask', () => {
