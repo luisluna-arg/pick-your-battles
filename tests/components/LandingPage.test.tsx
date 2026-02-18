@@ -12,14 +12,14 @@ describe('LandingPage Component', () => {
 
     expect(screen.getByText('Pick Your Battles')).toBeInTheDocument();
     expect(
-      screen.getByText('Focus on what matters. Limit yourself to 3 tasks at a time.')
+      screen.getByText(/Focus on what matters\. Limit yourself to a few tasks at a time/)
     ).toBeInTheDocument();
   });
 
   it('renders value proposition section', () => {
     render(<LandingPage />);
 
-    expect(screen.getByText('Why Only 3 Tasks?')).toBeInTheDocument();
+    expect(screen.getByText('Why Limit Your Tasks?')).toBeInTheDocument();
     expect(screen.getByText('Forced Focus')).toBeInTheDocument();
     expect(screen.getByText('Real Progress')).toBeInTheDocument();
     expect(screen.getByText('Less Stress')).toBeInTheDocument();
@@ -33,6 +33,9 @@ describe('LandingPage Component', () => {
     const signInElements = screen.getAllByText('Sign in with Google');
     expect(signInElements.length).toBeGreaterThanOrEqual(1);
     expect(screen.getByText('Choose your battles')).toBeInTheDocument();
+    expect(
+      screen.getByText(/Add tasks up to your configured limit/)
+    ).toBeInTheDocument();
     expect(screen.getByText('Stay focused and complete')).toBeInTheDocument();
   });
 
@@ -65,7 +68,7 @@ describe('LandingPage Component', () => {
 
     // Verify all key sections are present
     expect(screen.getByText('Pick Your Battles')).toBeInTheDocument();
-    expect(screen.getByText('Why Only 3 Tasks?')).toBeInTheDocument();
+    expect(screen.getByText('Why Limit Your Tasks?')).toBeInTheDocument();
     expect(screen.getByText('How It Works')).toBeInTheDocument();
   });
 });
