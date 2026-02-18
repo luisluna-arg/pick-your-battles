@@ -17,6 +17,14 @@ export const { auth, signIn, signOut, handlers } = NextAuth({
       // Logged in users are authenticated, otherwise redirect to login page
       return !!auth
     },
+    session: async ({ session, token }) => {
+      // Forward the user ID from the JWT token (token.sub) to the session object.
+      // NextAuth v5 does not automatically populate session.user.id without this callback.
+      if (token.sub && session.user) {
+        session.user.id = token.sub
+      }
+      return session
+    },
     signIn: async ({ user }) => {
       // Sync user to database on login
       if (user.id && user.email) {
