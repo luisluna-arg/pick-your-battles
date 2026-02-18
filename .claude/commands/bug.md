@@ -147,7 +147,7 @@ After creating the plan file:
 
 ## Implementation
 
-After the plan is approved, implement it using this git workflow:
+After creating the plan, immediately implement it — do not wait for user confirmation. Use this git workflow:
 
 1. **Sync with main:**
    - `git fetch origin && git pull origin main`
@@ -165,3 +165,11 @@ After the plan is approved, implement it using this git workflow:
 
 5. **Open a Pull Request:**
    - Use `/pull_request` to open a PR from the branch to main
+
+6. **Wait for checks and merge:**
+   - Run `gh pr checks <pr_number>` and wait until all checks pass
+   - Merge: `gh pr merge <pr_number> --squash --delete-branch`
+   - Pull main: `git checkout main && git pull origin main`
+
+7. **Close the issue:**
+   - `gh issue close <issue_number>`
