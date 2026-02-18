@@ -6,31 +6,40 @@ import type { Task } from '@/lib/db/schema';
 
 export default function Dashboard() {
   const [tasks, setTasks] = useState<Task[]>([]);
+  const [maxTasks, setMaxTasks] = useState(3);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [focusedTaskId, setFocusedTaskId] = useState<number | null>(null);
 
   useEffect(() => {
-    async function fetchTasks() {
+    async function fetchData() {
       try {
         setLoading(true);
-        const response = await fetch('/api/tasks');
+        const [tasksResponse, userResponse] = await Promise.all([
+          fetch('/api/tasks'),
+          fetch('/api/user'),
+        ]);
 
-        if (!response.ok) {
+        if (!tasksResponse.ok) {
           throw new Error('Failed to fetch tasks');
         }
 
-        const data = await response.json();
-        setTasks(data);
+        const tasksData = await tasksResponse.json();
+        setTasks(tasksData);
+
+        if (userResponse.ok) {
+          const userData = await userResponse.json();
+          setMaxTasks(userData.maxTasks ?? 3);
+        }
       } catch (err) {
-        console.error('Error fetching tasks:', err);
+        console.error('Error fetching data:', err);
         setError(err instanceof Error ? err.message : 'Failed to load tasks');
       } finally {
         setLoading(false);
       }
     }
 
-    fetchTasks();
+    fetchData();
   }, []);
 
   // Map tasks to slots (positions 1, 2, 3)
@@ -73,7 +82,7 @@ export default function Dashboard() {
             Pick Your Battles
           </h1>
           <p className="text-lg text-zinc-600 dark:text-zinc-400">
-            Focus on what matters. Limit yourself to 3 tasks at a time.
+            Focus on what matters. Limit yourself to {maxTasks} task{maxTasks !== 1 ? 's' : ''} at a time.
           </p>
         </div>
 
@@ -94,27 +103,16 @@ export default function Dashboard() {
         {/* Task Slots */}
         {!loading && !error && (
           <div className="grid gap-6 md:grid-cols-3">
-            <TaskSlot
-              slotNumber={1}
-              task={getTaskForSlot(1)}
-              focusedTaskId={focusedTaskId}
-              onFocusToggle={handleFocusToggle}
-              onAddTask={handleAddTask}
-            />
-            <TaskSlot
-              slotNumber={2}
-              task={getTaskForSlot(2)}
-              focusedTaskId={focusedTaskId}
-              onFocusToggle={handleFocusToggle}
-              onAddTask={handleAddTask}
-            />
-            <TaskSlot
-              slotNumber={3}
-              task={getTaskForSlot(3)}
-              focusedTaskId={focusedTaskId}
-              onFocusToggle={handleFocusToggle}
-              onAddTask={handleAddTask}
-            />
+            {Array.from({ length: maxTasks }, (_, i) => i + 1).map((slotNumber) => (
+              <TaskSlot
+                key={slotNumber}
+                slotNumber={slotNumber}
+                task={getTaskForSlot(slotNumber)}
+                focusedTaskId={focusedTaskId}
+                onFocusToggle={handleFocusToggle}
+                onAddTask={handleAddTask}
+              />
+            ))}
           </div>
         )}
       </div>
