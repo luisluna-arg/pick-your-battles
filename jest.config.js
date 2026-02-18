@@ -7,6 +7,9 @@ module.exports = {
     '^@/(.*)$': '<rootDir>/app/$1',
     '^next/link$': '<rootDir>/__mocks__/next-link.js',
     '^next/image$': '<rootDir>/__mocks__/next-image.js',
+    '^react$': '<rootDir>/node_modules/react',
+    '^react-dom$': '<rootDir>/node_modules/react-dom',
+    '^react-dom/(.*)$': '<rootDir>/node_modules/react-dom/$1',
   },
   setupFilesAfterEnv: ['<rootDir>/jest.setup.js'],
   collectCoverageFrom: [

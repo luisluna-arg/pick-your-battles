@@ -1,3 +1,6 @@
+'use client';
+
+import { useState } from 'react';
 import type { Task } from '@/lib/db/schema';
 
 interface TaskSlotProps {
@@ -5,6 +8,7 @@ interface TaskSlotProps {
   task?: Task;
   focusedTaskId?: number | null;
   onFocusToggle?: (taskId: number) => void;
+  onAddTask?: (position: number, title: string) => Promise<void>;
 }
 
 export default function TaskSlot({
@@ -12,12 +16,81 @@ export default function TaskSlot({
   task,
   focusedTaskId,
   onFocusToggle,
+  onAddTask,
 }: TaskSlotProps) {
+  const [isAdding, setIsAdding] = useState(false);
+  const [newTitle, setNewTitle] = useState('');
+  const [addError, setAddError] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
   // Determine focus state
   const isFocused = task && focusedTaskId === task.id;
-  const isFocusMode = focusedTaskId !== null;
+  const isFocusMode = focusedTaskId != null;
   const shouldDim = isFocusMode && !isFocused;
+
+  const handleAddSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newTitle.trim() || !onAddTask) return;
+
+    setIsSubmitting(true);
+    setAddError(null);
+    try {
+      await onAddTask(slotNumber, newTitle.trim());
+      setIsAdding(false);
+      setNewTitle('');
+    } catch (err) {
+      setAddError(err instanceof Error ? err.message : 'Failed to add task');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleCancel = () => {
+    setIsAdding(false);
+    setNewTitle('');
+    setAddError(null);
+  };
+
   if (!task) {
+    // Empty slot - show add form or add button
+    if (isAdding) {
+      return (
+        <div className="flex flex-col rounded-lg border-2 border-dashed border-zinc-400 bg-zinc-50 p-6 shadow-sm dark:border-zinc-600 dark:bg-zinc-900/50">
+          <form onSubmit={handleAddSubmit} className="flex flex-col gap-3">
+            <input
+              type="text"
+              value={newTitle}
+              onChange={(e) => setNewTitle(e.target.value)}
+              placeholder="Task title..."
+              autoFocus
+              disabled={isSubmitting}
+              className="w-full rounded-md border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-900 placeholder-zinc-400 focus:border-zinc-900 focus:outline-none focus:ring-1 focus:ring-zinc-900 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-50 dark:placeholder-zinc-500 dark:focus:border-zinc-50 dark:focus:ring-zinc-50"
+            />
+            {addError && (
+              <p className="text-xs text-red-600 dark:text-red-400">{addError}</p>
+            )}
+            <div className="flex gap-2">
+              <button
+                type="submit"
+                disabled={!newTitle.trim() || isSubmitting}
+                className="flex-1 rounded-md bg-zinc-900 px-3 py-2 text-sm font-medium text-white transition-colors hover:bg-zinc-800 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-zinc-50 dark:text-zinc-900 dark:hover:bg-zinc-200"
+              >
+                {isSubmitting ? 'Adding...' : 'Add'}
+              </button>
+              <button
+                type="button"
+                onClick={handleCancel}
+                disabled={isSubmitting}
+                className="rounded-md border border-zinc-300 bg-white px-3 py-2 text-sm font-medium text-zinc-900 transition-colors hover:bg-zinc-50 disabled:opacity-50 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-50 dark:hover:bg-zinc-700"
+              >
+                Cancel
+              </button>
+            </div>
+          </form>
+        </div>
+      );
+    }
+
     // Empty slot - dim during focus mode
     return (
       <div
@@ -28,9 +101,20 @@ export default function TaskSlot({
         }`}
       >
         <div className="text-center">
-          <p className="text-xl font-semibold text-zinc-400 dark:text-zinc-500">
-            Empty Slot {slotNumber}
-          </p>
+          {onAddTask && !isFocusMode ? (
+            <button
+              onClick={() => setIsAdding(true)}
+              className="flex flex-col items-center gap-2 text-zinc-400 transition-colors hover:text-zinc-600 dark:text-zinc-500 dark:hover:text-zinc-300"
+              aria-label={`Add task to slot ${slotNumber}`}
+            >
+              <span className="text-3xl font-light leading-none">+</span>
+              <span className="text-sm font-medium">Add Task</span>
+            </button>
+          ) : (
+            <p className="text-xl font-semibold text-zinc-400 dark:text-zinc-500">
+              Empty Slot {slotNumber}
+            </p>
+          )}
         </div>
       </div>
     );
