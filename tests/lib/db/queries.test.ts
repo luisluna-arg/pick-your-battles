@@ -160,5 +160,103 @@ describe('Database Queries', () => {
 
       expect(result).toBe(0);
     });
+
+    it('excludes completed tasks from count', async () => {
+      const mockTasks: Task[] = [
+        {
+          id: 1,
+          userId: 'user-1',
+          title: 'Active Task 1',
+          description: null,
+          status: 'pending',
+          position: 1,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        },
+        {
+          id: 2,
+          userId: 'user-1',
+          title: 'Active Task 2',
+          description: null,
+          status: 'in-progress',
+          position: 2,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        },
+        // Completed task - should not be counted
+      ];
+
+      const mockQuery = {
+        from: jest.fn().mockReturnThis(),
+        where: jest.fn().mockResolvedValue(mockTasks),
+      };
+
+      mockDb.select.mockReturnValue(mockQuery as any);
+
+      const result = await getTaskCount('user-1');
+
+      expect(result).toBe(2); // Only 2 active tasks
+    });
+
+    it('returns 0 when all tasks are completed', async () => {
+      const mockTasks: Task[] = []; // Query with status filter returns empty
+
+      const mockQuery = {
+        from: jest.fn().mockReturnThis(),
+        where: jest.fn().mockResolvedValue(mockTasks),
+      };
+
+      mockDb.select.mockReturnValue(mockQuery as any);
+
+      const result = await getTaskCount('user-1');
+
+      expect(result).toBe(0);
+    });
+
+    it('counts only pending and in-progress tasks', async () => {
+      const mockTasks: Task[] = [
+        {
+          id: 1,
+          userId: 'user-1',
+          title: 'Pending Task',
+          description: null,
+          status: 'pending',
+          position: 1,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        },
+        {
+          id: 2,
+          userId: 'user-1',
+          title: 'In Progress Task',
+          description: null,
+          status: 'in-progress',
+          position: 2,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        },
+        {
+          id: 3,
+          userId: 'user-1',
+          title: 'Another Pending',
+          description: null,
+          status: 'pending',
+          position: 3,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        },
+      ];
+
+      const mockQuery = {
+        from: jest.fn().mockReturnThis(),
+        where: jest.fn().mockResolvedValue(mockTasks),
+      };
+
+      mockDb.select.mockReturnValue(mockQuery as any);
+
+      const result = await getTaskCount('user-1');
+
+      expect(result).toBe(3); // 2 pending + 1 in-progress
+    });
   });
 });

@@ -1,4 +1,4 @@
-import { eq, and, asc } from 'drizzle-orm';
+import { eq, and, asc, ne } from 'drizzle-orm';
 import { db } from './connection';
 import { users, tasks, type User, type Task } from './schema';
 
@@ -44,14 +44,15 @@ export async function getTaskById(
 }
 
 /**
- * Get the count of tasks for a user
+ * Get the count of active (non-completed) tasks for a user
  * Used for enforcing task limits
+ * Note: Completed tasks are excluded from the count
  */
 export async function getTaskCount(userId: string): Promise<number> {
   const results = await db
     .select()
     .from(tasks)
-    .where(eq(tasks.userId, userId));
+    .where(and(eq(tasks.userId, userId), ne(tasks.status, 'completed')));
 
   return results.length;
 }
