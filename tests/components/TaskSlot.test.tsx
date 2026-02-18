@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react'
+import { render, screen, fireEvent } from '@testing-library/react'
 import TaskSlot from '@/components/TaskSlot'
 import type { Task } from '@/lib/db/schema'
 
@@ -52,5 +52,127 @@ describe('TaskSlot Component', () => {
 
     const container = screen.getByText(/Empty Slot 1/).closest('div')
     expect(container).toHaveClass('text-center')
+  })
+
+  describe('Focus Mode', () => {
+    const mockTask: Task = {
+      id: 1,
+      userId: 'user-1',
+      title: 'Test Task',
+      description: null,
+      status: 'pending',
+      position: 1,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    }
+
+    it('renders focus button when onFocusToggle provided', () => {
+      const mockOnFocusToggle = jest.fn()
+
+      render(
+        <TaskSlot
+          slotNumber={1}
+          task={mockTask}
+          focusedTaskId={null}
+          onFocusToggle={mockOnFocusToggle}
+        />
+      )
+
+      const focusButton = screen.getByLabelText(/Focus on this task/)
+      expect(focusButton).toBeInTheDocument()
+    })
+
+    it('calls onFocusToggle when focus button clicked', () => {
+      const mockOnFocusToggle = jest.fn()
+
+      render(
+        <TaskSlot
+          slotNumber={1}
+          task={mockTask}
+          focusedTaskId={null}
+          onFocusToggle={mockOnFocusToggle}
+        />
+      )
+
+      const focusButton = screen.getByLabelText(/Focus on this task/)
+      fireEvent.click(focusButton)
+
+      expect(mockOnFocusToggle).toHaveBeenCalledWith(1)
+    })
+
+    it('applies dim styles when another task is focused', () => {
+      const { container } = render(
+        <TaskSlot
+          slotNumber={1}
+          task={mockTask}
+          focusedTaskId={2} // Different task is focused
+          onFocusToggle={jest.fn()}
+        />
+      )
+
+      const taskDiv = container.firstChild as HTMLElement
+      expect(taskDiv).toHaveClass('opacity-40', 'blur-sm')
+    })
+
+    it('does not apply dim styles when this task is focused', () => {
+      const { container } = render(
+        <TaskSlot
+          slotNumber={1}
+          task={mockTask}
+          focusedTaskId={1} // This task is focused
+          onFocusToggle={jest.fn()}
+        />
+      )
+
+      const taskDiv = container.firstChild as HTMLElement
+      expect(taskDiv).not.toHaveClass('opacity-40')
+      expect(taskDiv).not.toHaveClass('blur-sm')
+    })
+
+    it('does not apply dim styles when focus mode is off', () => {
+      const { container } = render(
+        <TaskSlot
+          slotNumber={1}
+          task={mockTask}
+          focusedTaskId={null} // No focus active
+          onFocusToggle={jest.fn()}
+        />
+      )
+
+      const taskDiv = container.firstChild as HTMLElement
+      expect(taskDiv).not.toHaveClass('opacity-40')
+      expect(taskDiv).not.toHaveClass('blur-sm')
+    })
+
+    it('shows unfocus label when task is focused', () => {
+      render(
+        <TaskSlot
+          slotNumber={1}
+          task={mockTask}
+          focusedTaskId={1} // This task is focused
+          onFocusToggle={jest.fn()}
+        />
+      )
+
+      const unfocusButton = screen.getByLabelText(/Unfocus task/)
+      expect(unfocusButton).toBeInTheDocument()
+    })
+
+    it('dims empty slots during focus mode', () => {
+      const { container } = render(
+        <TaskSlot slotNumber={2} focusedTaskId={1} /> // No task, but focus mode active
+      )
+
+      const emptySlot = container.firstChild as HTMLElement
+      expect(emptySlot).toHaveClass('opacity-30', 'blur-sm')
+    })
+
+    it('does not dim empty slots when focus mode is off', () => {
+      const { container } = render(<TaskSlot slotNumber={2} focusedTaskId={null} />)
+
+      const emptySlot = container.firstChild as HTMLElement
+      expect(emptySlot).not.toHaveClass('opacity-30')
+      expect(emptySlot).not.toHaveClass('blur-sm')
+    })
   })
 })

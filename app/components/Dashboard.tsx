@@ -8,6 +8,7 @@ export default function Dashboard() {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [focusedTaskId, setFocusedTaskId] = useState<number | null>(null);
 
   useEffect(() => {
     async function fetchTasks() {
@@ -35,6 +36,11 @@ export default function Dashboard() {
   // Map tasks to slots (positions 1, 2, 3)
   const getTaskForSlot = (slotNumber: number): Task | undefined => {
     return tasks.find((task) => task.position === slotNumber);
+  };
+
+  // Handle focus toggle - clicking focused task unfocuses, clicking unfocused task focuses it
+  const handleFocusToggle = (taskId: number) => {
+    setFocusedTaskId((prev) => (prev === taskId ? null : taskId));
   };
 
   return (
@@ -67,9 +73,24 @@ export default function Dashboard() {
         {/* Task Slots */}
         {!loading && !error && (
           <div className="grid gap-6 md:grid-cols-3">
-            <TaskSlot slotNumber={1} task={getTaskForSlot(1)} />
-            <TaskSlot slotNumber={2} task={getTaskForSlot(2)} />
-            <TaskSlot slotNumber={3} task={getTaskForSlot(3)} />
+            <TaskSlot
+              slotNumber={1}
+              task={getTaskForSlot(1)}
+              focusedTaskId={focusedTaskId}
+              onFocusToggle={handleFocusToggle}
+            />
+            <TaskSlot
+              slotNumber={2}
+              task={getTaskForSlot(2)}
+              focusedTaskId={focusedTaskId}
+              onFocusToggle={handleFocusToggle}
+            />
+            <TaskSlot
+              slotNumber={3}
+              task={getTaskForSlot(3)}
+              focusedTaskId={focusedTaskId}
+              onFocusToggle={handleFocusToggle}
+            />
           </div>
         )}
       </div>
