@@ -1,7 +1,6 @@
 import { getCurrentUser } from '@/lib/auth';
 import { getUserProfile } from '@/lib/db/queries';
 import { upsertUser } from '@/lib/db/mutations';
-import UserNav from '@/components/UserNav';
 import SettingsForm from '@/components/SettingsForm';
 import { redirect } from 'next/navigation';
 import Link from 'next/link';
@@ -27,13 +26,6 @@ export default async function SettingsPage() {
 
   return (
     <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950">
-      {/* User Navigation */}
-      <div className="border-b border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-900">
-        <div className="mx-auto max-w-7xl px-4 py-4">
-          <UserNav />
-        </div>
-      </div>
-
       {/* Settings Content */}
       <div className="mx-auto max-w-4xl px-4 py-8">
         <div className="mb-8">
