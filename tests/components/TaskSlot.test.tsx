@@ -1,4 +1,4 @@
-import { render, screen, fireEvent } from '@testing-library/react'
+import { render, screen, fireEvent, waitFor } from '@testing-library/react'
 import TaskSlot from '@/components/TaskSlot'
 import type { Task } from '@/lib/db/schema'
 
@@ -52,6 +52,82 @@ describe('TaskSlot Component', () => {
 
     const container = screen.getByText(/Empty Slot 1/).closest('div')
     expect(container).toHaveClass('text-center')
+  })
+
+  describe('Add Task', () => {
+    it('renders Add Task button on empty slot when onAddTask provided', () => {
+      render(<TaskSlot slotNumber={1} onAddTask={jest.fn()} />)
+
+      expect(screen.getByLabelText('Add task to slot 1')).toBeInTheDocument()
+      expect(screen.getByText('Add Task')).toBeInTheDocument()
+    })
+
+    it('does not render Add Task button when onAddTask not provided', () => {
+      render(<TaskSlot slotNumber={1} />)
+
+      expect(screen.queryByLabelText('Add task to slot 1')).not.toBeInTheDocument()
+      expect(screen.queryByText('Add Task')).not.toBeInTheDocument()
+    })
+
+    it('shows inline form when Add Task button clicked', () => {
+      render(<TaskSlot slotNumber={1} onAddTask={jest.fn()} />)
+
+      fireEvent.click(screen.getByLabelText('Add task to slot 1'))
+
+      expect(screen.getByPlaceholderText('Task title...')).toBeInTheDocument()
+      expect(screen.getByRole('button', { name: 'Add' })).toBeInTheDocument()
+      expect(screen.getByRole('button', { name: 'Cancel' })).toBeInTheDocument()
+    })
+
+    it('calls onAddTask with correct position and title on submit', async () => {
+      const mockOnAddTask = jest.fn().mockResolvedValue(undefined)
+      render(<TaskSlot slotNumber={2} onAddTask={mockOnAddTask} />)
+
+      fireEvent.click(screen.getByLabelText('Add task to slot 2'))
+      fireEvent.change(screen.getByPlaceholderText('Task title...'), {
+        target: { value: 'My new task' },
+      })
+      fireEvent.click(screen.getByRole('button', { name: 'Add' }))
+
+      await waitFor(() => {
+        expect(mockOnAddTask).toHaveBeenCalledWith(2, 'My new task')
+      })
+    })
+
+    it('disables submit when title is empty', () => {
+      render(<TaskSlot slotNumber={1} onAddTask={jest.fn()} />)
+
+      fireEvent.click(screen.getByLabelText('Add task to slot 1'))
+
+      expect(screen.getByRole('button', { name: 'Add' })).toBeDisabled()
+    })
+
+    it('cancel hides the form and shows Add Task button again', () => {
+      render(<TaskSlot slotNumber={1} onAddTask={jest.fn()} />)
+
+      fireEvent.click(screen.getByLabelText('Add task to slot 1'))
+      expect(screen.getByPlaceholderText('Task title...')).toBeInTheDocument()
+
+      fireEvent.click(screen.getByRole('button', { name: 'Cancel' }))
+
+      expect(screen.queryByPlaceholderText('Task title...')).not.toBeInTheDocument()
+      expect(screen.getByLabelText('Add task to slot 1')).toBeInTheDocument()
+    })
+
+    it('shows error message when onAddTask throws', async () => {
+      const mockOnAddTask = jest.fn().mockRejectedValue(new Error('Task limit reached'))
+      render(<TaskSlot slotNumber={1} onAddTask={mockOnAddTask} />)
+
+      fireEvent.click(screen.getByLabelText('Add task to slot 1'))
+      fireEvent.change(screen.getByPlaceholderText('Task title...'), {
+        target: { value: 'Task' },
+      })
+      fireEvent.click(screen.getByRole('button', { name: 'Add' }))
+
+      await waitFor(() => {
+        expect(screen.getByText('Task limit reached')).toBeInTheDocument()
+      })
+    })
   })
 
   describe('Focus Mode', () => {

@@ -43,6 +43,27 @@ export default function Dashboard() {
     setFocusedTaskId((prev) => (prev === taskId ? null : taskId));
   };
 
+  // Handle adding a new task to a slot
+  const handleAddTask = async (position: number, title: string) => {
+    const response = await fetch('/api/tasks', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ title, position }),
+    });
+
+    if (!response.ok) {
+      const data = await response.json();
+      throw new Error(data.error || 'Failed to create task');
+    }
+
+    // Re-fetch tasks to update the UI
+    const updated = await fetch('/api/tasks');
+    if (updated.ok) {
+      const data = await updated.json();
+      setTasks(data);
+    }
+  };
+
   return (
     <div className="flex min-h-screen items-center justify-center bg-zinc-50 p-4 dark:bg-zinc-950">
       <div className="w-full max-w-4xl">
@@ -78,18 +99,21 @@ export default function Dashboard() {
               task={getTaskForSlot(1)}
               focusedTaskId={focusedTaskId}
               onFocusToggle={handleFocusToggle}
+              onAddTask={handleAddTask}
             />
             <TaskSlot
               slotNumber={2}
               task={getTaskForSlot(2)}
               focusedTaskId={focusedTaskId}
               onFocusToggle={handleFocusToggle}
+              onAddTask={handleAddTask}
             />
             <TaskSlot
               slotNumber={3}
               task={getTaskForSlot(3)}
               focusedTaskId={focusedTaskId}
               onFocusToggle={handleFocusToggle}
+              onAddTask={handleAddTask}
             />
           </div>
         )}
