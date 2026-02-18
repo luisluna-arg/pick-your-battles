@@ -85,8 +85,14 @@ export async function PATCH(request: Request) {
       }
     }
 
-    // Update user profile
-    const updatedUser = await updateUserProfile(user.id!, {
+    // Resolve canonical DB user ID (handles OAuth ID rotation)
+    const profile = await getUserProfile(user.id!, user.email ?? undefined);
+    if (!profile) {
+      return NextResponse.json({ error: 'User not found' }, { status: 404 });
+    }
+
+    // Update user profile using canonical DB ID
+    const updatedUser = await updateUserProfile(profile.id, {
       maxTasks,
     });
 

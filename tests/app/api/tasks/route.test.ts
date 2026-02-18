@@ -1,27 +1,47 @@
 /**
  * @jest-environment node
  */
-import { GET } from '@/app/api/tasks/route';
-import { requireAuth } from '@/lib/auth';
+import { GET, POST } from '@/app/api/tasks/route';
+import { resolveUserProfile } from '@/lib/auth';
 import { getUserTasks } from '@/lib/db/queries';
-import type { Task } from '@/lib/db/schema';
+import { createTask } from '@/lib/db/mutations';
+import type { Task, User } from '@/lib/db/schema';
 
 jest.mock('@/lib/auth');
 jest.mock('@/lib/db/queries');
+jest.mock('@/lib/db/mutations');
 
-const mockRequireAuth = requireAuth as jest.MockedFunction<typeof requireAuth>;
+const mockResolveUserProfile = resolveUserProfile as jest.MockedFunction<typeof resolveUserProfile>;
 const mockGetUserTasks = getUserTasks as jest.MockedFunction<typeof getUserTasks>;
+const mockCreateTask = createTask as jest.MockedFunction<typeof createTask>;
+
+const mockProfile: User = {
+  id: 'user-123',
+  email: 'test@example.com',
+  name: 'Test User',
+  image: null,
+  maxTasks: 3,
+  createdAt: new Date(),
+};
+
+const mockTask: Task = {
+  id: 1,
+  userId: 'user-123',
+  title: 'Test Task',
+  description: null,
+  status: 'pending',
+  position: 1,
+  createdAt: new Date(),
+  updatedAt: new Date(),
+};
 
 describe('GET /api/tasks', () => {
   beforeEach(() => {
     jest.clearAllMocks();
   });
 
-  it('returns 401 when session has no user ID', async () => {
-    // This reproduces the bug: requireAuth throws because session.user.id is undefined
-    mockRequireAuth.mockRejectedValue(
-      new Error('Unauthorized: User must be authenticated')
-    );
+  it('returns 401 when not authenticated', async () => {
+    mockResolveUserProfile.mockResolvedValue(null);
 
     const response = await GET();
 
@@ -32,31 +52,15 @@ describe('GET /api/tasks', () => {
   });
 
   it('returns 200 with tasks for authenticated user', async () => {
-    const mockSession = {
-      user: { id: 'user-123', name: 'Test User', email: 'test@example.com' },
-      expires: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
-    };
-    const mockTasks: Task[] = [
-      {
-        id: 1,
-        userId: 'user-123',
-        title: 'Test Task',
-        description: null,
-        status: 'pending',
-        position: 1,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      },
-    ];
+    const mockTasks: Task[] = [mockTask];
 
-    mockRequireAuth.mockResolvedValue(mockSession as any);
+    mockResolveUserProfile.mockResolvedValue(mockProfile);
     mockGetUserTasks.mockResolvedValue(mockTasks);
 
     const response = await GET();
 
     expect(response.status).toBe(200);
     const data = await response.json();
-    // Dates are serialized to ISO strings by NextResponse.json
     expect(data).toEqual(
       mockTasks.map((t) => ({
         ...t,
@@ -67,13 +71,18 @@ describe('GET /api/tasks', () => {
     expect(mockGetUserTasks).toHaveBeenCalledWith('user-123');
   });
 
-  it('returns 200 with empty array when authenticated user has no tasks', async () => {
-    const mockSession = {
-      user: { id: 'user-123', name: 'Test User', email: 'test@example.com' },
-      expires: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
-    };
+  it('uses canonical DB user ID for task lookup', async () => {
+    const profileWithDifferentId: User = { ...mockProfile, id: 'db-canonical-id' };
+    mockResolveUserProfile.mockResolvedValue(profileWithDifferentId);
+    mockGetUserTasks.mockResolvedValue([]);
 
-    mockRequireAuth.mockResolvedValue(mockSession as any);
+    await GET();
+
+    expect(mockGetUserTasks).toHaveBeenCalledWith('db-canonical-id');
+  });
+
+  it('returns 200 with empty array when user has no tasks', async () => {
+    mockResolveUserProfile.mockResolvedValue(mockProfile);
     mockGetUserTasks.mockResolvedValue([]);
 
     const response = await GET();
@@ -81,6 +90,72 @@ describe('GET /api/tasks', () => {
     expect(response.status).toBe(200);
     const data = await response.json();
     expect(data).toEqual([]);
-    expect(mockGetUserTasks).toHaveBeenCalledWith('user-123');
+  });
+});
+
+describe('POST /api/tasks', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  const makeRequest = (body: object) =>
+    new Request('http://localhost/api/tasks', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+    }) as any;
+
+  it('returns 401 when not authenticated', async () => {
+    mockResolveUserProfile.mockResolvedValue(null);
+
+    const response = await POST(makeRequest({ title: 'Test', position: 1 }));
+
+    expect(response.status).toBe(401);
+    expect(mockCreateTask).not.toHaveBeenCalled();
+  });
+
+  it('returns 400 when title is missing', async () => {
+    mockResolveUserProfile.mockResolvedValue(mockProfile);
+
+    const response = await POST(makeRequest({ position: 1 }));
+
+    expect(response.status).toBe(400);
+    const data = await response.json();
+    expect(data.error).toContain('Title is required');
+  });
+
+  it('returns 400 when position is missing', async () => {
+    mockResolveUserProfile.mockResolvedValue(mockProfile);
+
+    const response = await POST(makeRequest({ title: 'Test' }));
+
+    expect(response.status).toBe(400);
+    const data = await response.json();
+    expect(data.error).toContain('Position is required');
+  });
+
+  it('creates task with canonical DB user ID', async () => {
+    const profileWithDifferentId: User = { ...mockProfile, id: 'db-canonical-id' };
+    mockResolveUserProfile.mockResolvedValue(profileWithDifferentId);
+    mockCreateTask.mockResolvedValue({ ...mockTask, userId: 'db-canonical-id' });
+
+    const response = await POST(makeRequest({ title: 'New Task', position: 1 }));
+
+    expect(response.status).toBe(201);
+    expect(mockCreateTask).toHaveBeenCalledWith('db-canonical-id', expect.objectContaining({
+      title: 'New Task',
+      position: 1,
+    }));
+  });
+
+  it('returns 400 when task limit is reached', async () => {
+    mockResolveUserProfile.mockResolvedValue(mockProfile);
+    mockCreateTask.mockRejectedValue(new Error('Task limit reached. You can only have 3 tasks at a time.'));
+
+    const response = await POST(makeRequest({ title: 'Test', position: 1 }));
+
+    expect(response.status).toBe(400);
+    const data = await response.json();
+    expect(data.error).toContain('Task limit reached');
   });
 });
