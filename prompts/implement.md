@@ -9,6 +9,9 @@ Follow the `Instructions` to implement the `Plan`, then `Report` the completed w
   - Run `git fetch origin` to fetch all remote changes
   - Run `git pull origin main` to ensure main is up to date
   - This prevents merge conflicts and ensures you're working with the latest code
+- **Note:** If you just created a plan using `/feature`, `/chore`, or `/bug`, the plan file should already be committed to main
+  - If for any reason the plan file is uncommitted, commit it to main BEFORE creating an implementation branch
+  - Plan files are documentation and should be tracked in main, not in feature branches
 - Read the plan carefully. Think hard about the plan, then implement it step by step.
 - Extract the `issue_number` from the plan metadata (if available)
 - Check if you're on a feature branch:

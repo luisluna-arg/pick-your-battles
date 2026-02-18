@@ -105,4 +105,14 @@ Extract the chore details from the `issue_json` variable (parse the JSON and use
 
 ## Report
 
-- IMPORTANT: Return exclusively the path to the plan file created and nothing else.
+After creating the plan file:
+
+1. **Commit the plan to main branch:**
+   - Run `git add plans/issue-{issue_number}-adw-{adw_id}-*.md`
+   - Commit with message: `docs: Add implementation plan for <chore name>`
+   - Include co-author line: `Co-Authored-By: Claude Sonnet 4.5 <noreply@anthropic.com>`
+   - Push to main: `git push origin main`
+   - Plan files are documentation/evidence and should be in main before implementation begins
+
+2. **Return the plan file path:**
+   - IMPORTANT: Return exclusively the path to the plan file created and nothing else
