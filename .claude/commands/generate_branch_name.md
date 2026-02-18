@@ -49,8 +49,9 @@ issue_number: $1 (required - the GitHub issue number)
 4. Create the concise name from the issue title
 5. Build the complete branch name
 6. Run `git checkout main` to switch to the main branch
-7. Run `git pull` to pull the latest changes from the main branch
-8. Run `git checkout -b <branch_name>` to create and switch to the new branch
+7. Run `git fetch origin` to fetch all remote changes
+8. Run `git pull origin main` to pull the latest changes from the main branch
+9. Run `git checkout -b <branch_name>` to create and switch to the new branch
 
 ## Report
 

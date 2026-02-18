@@ -52,6 +52,7 @@ npm test
 
 ## Conventions
 
+- **ALWAYS fetch and pull from main before starting any work** (`git fetch origin && git pull origin main`)
 - Follow ESLint config
 - Write tests for all new features
 - Use TypeScript type annotations

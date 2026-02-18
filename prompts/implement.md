@@ -5,6 +5,10 @@ Follow the `Instructions` to implement the `Plan`, then `Report` the completed w
 ## Instructions
 
 ### Before Implementation
+- **ALWAYS start by fetching and pulling latest changes:**
+  - Run `git fetch origin` to fetch all remote changes
+  - Run `git pull origin main` to ensure main is up to date
+  - This prevents merge conflicts and ensures you're working with the latest code
 - Read the plan carefully. Think hard about the plan, then implement it step by step.
 - Extract the `issue_number` from the plan metadata (if available)
 - Check if you're on a feature branch:
