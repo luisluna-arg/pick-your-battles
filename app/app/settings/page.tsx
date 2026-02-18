@@ -1,9 +1,23 @@
-import { requireAuth } from '@/lib/auth';
+import { getCurrentUser } from '@/lib/auth';
+import { getUserProfile } from '@/lib/db/queries';
 import UserNav from '@/components/UserNav';
+import SettingsForm from '@/components/SettingsForm';
+import { redirect } from 'next/navigation';
 
 export default async function SettingsPage() {
-  // Ensure user is authenticated (middleware also protects this route)
-  await requireAuth();
+  // Get authenticated user
+  const user = await getCurrentUser();
+  if (!user) {
+    redirect('/');
+  }
+
+  // Fetch user profile
+  const userId = user.id!;
+  const profile = await getUserProfile(userId);
+  if (!profile) {
+    // User should exist if authenticated, but handle edge case
+    redirect('/');
+  }
 
   return (
     <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950">
@@ -25,14 +39,13 @@ export default async function SettingsPage() {
           </p>
         </div>
 
-        {/* Placeholder Content */}
-        <div className="rounded-lg border border-zinc-200 bg-white p-8 text-center dark:border-zinc-800 dark:bg-zinc-900">
-          <p className="text-zinc-600 dark:text-zinc-400">
-            Settings coming soon...
-          </p>
-          <p className="mt-2 text-sm text-zinc-500 dark:text-zinc-500">
-            Future features: task limit configuration, theme preferences, account management
-          </p>
+        {/* Settings Form */}
+        <div className="rounded-lg border border-zinc-200 bg-white p-8 dark:border-zinc-800 dark:bg-zinc-900">
+          <SettingsForm
+            initialDisplayName={profile.displayName}
+            initialMaxTasks={profile.maxTasks}
+            userId={userId}
+          />
         </div>
       </div>
     </div>

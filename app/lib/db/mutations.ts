@@ -98,3 +98,33 @@ export async function deleteTask(
 
   return results.length > 0;
 }
+
+/**
+ * Update user profile settings
+ * Allows updating displayName and maxTasks
+ */
+export async function updateUserProfile(
+  userId: string,
+  data: { displayName?: string; maxTasks?: number }
+): Promise<User | null> {
+  // Validate maxTasks if provided (must be >= 1 and <= 10)
+  if (data.maxTasks !== undefined && (data.maxTasks < 1 || data.maxTasks > 10)) {
+    throw new Error('Max tasks must be between 1 and 10');
+  }
+
+  const updateData: Partial<User> = {};
+  if (data.displayName !== undefined) {
+    updateData.displayName = data.displayName;
+  }
+  if (data.maxTasks !== undefined) {
+    updateData.maxTasks = data.maxTasks;
+  }
+
+  const results = await db
+    .update(users)
+    .set(updateData)
+    .where(eq(users.id, userId))
+    .returning();
+
+  return results[0] ?? null;
+}
