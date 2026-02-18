@@ -16,6 +16,7 @@ jest.mock('@/lib/db/queries');
 
 const mockDb = db as jest.Mocked<typeof db>;
 const mockGetTaskCount = queries.getTaskCount as jest.MockedFunction<typeof queries.getTaskCount>;
+const mockGetUserProfile = queries.getUserProfile as jest.MockedFunction<typeof queries.getUserProfile>;
 
 describe('Database Mutations', () => {
   beforeEach(() => {
@@ -23,17 +24,20 @@ describe('Database Mutations', () => {
   });
 
   describe('upsertUser', () => {
-    it('creates or updates user successfully', async () => {
+    it('creates user with displayName defaulting to email', async () => {
       const mockUser = {
         id: 'user-1',
         email: 'test@example.com',
         name: 'Test User',
         image: 'https://example.com/avatar.jpg',
+        displayName: 'test@example.com',
+        maxTasks: 3,
         createdAt: new Date(),
       };
 
+      const mockValues = jest.fn().mockReturnThis();
       const mockQuery = {
-        values: jest.fn().mockReturnThis(),
+        values: mockValues,
         onConflictDoUpdate: jest.fn().mockReturnThis(),
         returning: jest.fn().mockResolvedValue([mockUser]),
       };
@@ -48,12 +52,96 @@ describe('Database Mutations', () => {
       });
 
       expect(result).toEqual(mockUser);
-      expect(mockDb.insert).toHaveBeenCalled();
+      expect(mockValues).toHaveBeenCalledWith(expect.objectContaining({
+        email: 'test@example.com',
+        displayName: 'test@example.com', // Should default to email
+        maxTasks: 3, // Should default to 3
+      }));
+    });
+
+    it('preserves provided displayName and maxTasks', async () => {
+      const mockUser = {
+        id: 'user-1',
+        email: 'test@example.com',
+        name: 'Test User',
+        image: 'https://example.com/avatar.jpg',
+        displayName: 'Custom Name',
+        maxTasks: 5,
+        createdAt: new Date(),
+      };
+
+      const mockValues = jest.fn().mockReturnThis();
+      const mockQuery = {
+        values: mockValues,
+        onConflictDoUpdate: jest.fn().mockReturnThis(),
+        returning: jest.fn().mockResolvedValue([mockUser]),
+      };
+
+      mockDb.insert.mockReturnValue(mockQuery as any);
+
+      const result = await upsertUser({
+        id: 'user-1',
+        email: 'test@example.com',
+        name: 'Test User',
+        image: 'https://example.com/avatar.jpg',
+        displayName: 'Custom Name',
+        maxTasks: 5,
+      });
+
+      expect(result).toEqual(mockUser);
+      expect(mockValues).toHaveBeenCalledWith(expect.objectContaining({
+        displayName: 'Custom Name', // Should preserve provided value
+        maxTasks: 5, // Should preserve provided value
+      }));
+    });
+
+    it('does not update displayName and maxTasks on conflict', async () => {
+      const mockUser = {
+        id: 'user-1',
+        email: 'updated@example.com',
+        name: 'Updated Name',
+        image: 'https://example.com/new-avatar.jpg',
+        displayName: 'Original Display Name',
+        maxTasks: 3,
+        createdAt: new Date(),
+      };
+
+      const mockOnConflict = jest.fn().mockReturnThis();
+      const mockQuery = {
+        values: jest.fn().mockReturnThis(),
+        onConflictDoUpdate: mockOnConflict,
+        returning: jest.fn().mockResolvedValue([mockUser]),
+      };
+
+      mockDb.insert.mockReturnValue(mockQuery as any);
+
+      await upsertUser({
+        id: 'user-1',
+        email: 'updated@example.com',
+        name: 'Updated Name',
+        image: 'https://example.com/new-avatar.jpg',
+      });
+
+      expect(mockOnConflict).toHaveBeenCalledWith(expect.objectContaining({
+        set: expect.not.objectContaining({
+          displayName: expect.anything(),
+          maxTasks: expect.anything(),
+        }),
+      }));
     });
   });
 
   describe('createTask', () => {
-    it('creates task successfully when under limit', async () => {
+    it('creates task successfully when under user limit', async () => {
+      mockGetUserProfile.mockResolvedValue({
+        id: 'user-1',
+        email: 'test@example.com',
+        name: 'Test User',
+        image: null,
+        displayName: 'test@example.com',
+        maxTasks: 3,
+        createdAt: new Date(),
+      });
       mockGetTaskCount.mockResolvedValue(2); // User has 2 tasks
 
       const mockTask = {
@@ -81,10 +169,20 @@ describe('Database Mutations', () => {
       });
 
       expect(result).toEqual(mockTask);
+      expect(mockGetUserProfile).toHaveBeenCalledWith('user-1');
       expect(mockGetTaskCount).toHaveBeenCalledWith('user-1');
     });
 
-    it('throws error when task limit is reached', async () => {
+    it('throws error when user task limit is reached', async () => {
+      mockGetUserProfile.mockResolvedValue({
+        id: 'user-1',
+        email: 'test@example.com',
+        name: 'Test User',
+        image: null,
+        displayName: 'test@example.com',
+        maxTasks: 3,
+        createdAt: new Date(),
+      });
       mockGetTaskCount.mockResolvedValue(3); // User already has 3 tasks
 
       await expect(
@@ -92,7 +190,40 @@ describe('Database Mutations', () => {
           title: 'New Task',
           position: 1,
         })
-      ).rejects.toThrow('Task limit reached');
+      ).rejects.toThrow('Task limit reached. You can only have 3 tasks at a time.');
+
+      expect(mockDb.insert).not.toHaveBeenCalled();
+    });
+
+    it('enforces custom user task limit', async () => {
+      mockGetUserProfile.mockResolvedValue({
+        id: 'user-1',
+        email: 'test@example.com',
+        name: 'Test User',
+        image: null,
+        displayName: 'test@example.com',
+        maxTasks: 5, // Custom limit
+        createdAt: new Date(),
+      });
+      mockGetTaskCount.mockResolvedValue(5); // User already has 5 tasks
+
+      await expect(
+        createTask('user-1', {
+          title: 'New Task',
+          position: 1,
+        })
+      ).rejects.toThrow('Task limit reached. You can only have 5 tasks at a time.');
+    });
+
+    it('throws error when user not found', async () => {
+      mockGetUserProfile.mockResolvedValue(null);
+
+      await expect(
+        createTask('user-1', {
+          title: 'New Task',
+          position: 1,
+        })
+      ).rejects.toThrow('User not found');
 
       expect(mockDb.insert).not.toHaveBeenCalled();
     });

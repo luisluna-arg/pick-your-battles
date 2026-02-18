@@ -1,6 +1,20 @@
 import { eq, and, asc } from 'drizzle-orm';
 import { db } from './connection';
-import { tasks, type Task } from './schema';
+import { users, tasks, type User, type Task } from './schema';
+
+/**
+ * Get user profile by ID
+ * Returns user data including maxTasks configuration
+ */
+export async function getUserProfile(userId: string): Promise<User | null> {
+  const results = await db
+    .select()
+    .from(users)
+    .where(eq(users.id, userId))
+    .limit(1);
+
+  return results[0] ?? null;
+}
 
 /**
  * Get all tasks for a specific user, ordered by position
