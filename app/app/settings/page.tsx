@@ -49,7 +49,6 @@ export default async function SettingsPage() {
         {/* Settings Form */}
         <div className="rounded-lg border border-zinc-200 bg-white p-8 dark:border-zinc-800 dark:bg-zinc-900">
           <SettingsForm
-            initialDisplayName={profile.displayName}
             initialMaxTasks={profile.maxTasks}
             userId={userId}
           />

@@ -7,7 +7,6 @@ export const users = pgTable('users', {
   email: text('email').notNull().unique(),
   name: text('name'),
   image: text('image'), // Profile picture URL
-  displayName: text('display_name'), // User's display name (defaults to email)
   maxTasks: integer('max_tasks').notNull().default(3), // User's personal task limit
   createdAt: timestamp('created_at').defaultNow().notNull(),
 });
