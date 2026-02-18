@@ -12,7 +12,7 @@ export async function upsertUser(data: InsertUser): Promise<User> {
     .insert(users)
     .values({
       ...data,
-      maxTasks: data.maxTasks ?? 3, // Default to 3 if not provided
+      maxTasks: data.maxTasks ?? 3,
     })
     .onConflictDoUpdate({
       target: users.id,
@@ -20,7 +20,7 @@ export async function upsertUser(data: InsertUser): Promise<User> {
         email: data.email,
         name: data.name,
         image: data.image,
-        // Do NOT update displayName and maxTasks on subsequent logins
+        // Do NOT update maxTasks on subsequent logins
       },
     })
     .returning();

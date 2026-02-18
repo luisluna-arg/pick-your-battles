@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { getCurrentUser } from '@/lib/auth';
-import { updateUserProfile } from '@/lib/db/mutations';
+import { upsertUser, updateUserProfile } from '@/lib/db/mutations';
 import { getUserProfile } from '@/lib/db/queries';
 
 /**
@@ -14,9 +14,14 @@ export async function GET() {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const profile = await getUserProfile(user.id!);
+    let profile = await getUserProfile(user.id!, user.email ?? undefined);
     if (!profile) {
-      return NextResponse.json({ error: 'User not found' }, { status: 404 });
+      profile = await upsertUser({
+        id: user.id!,
+        email: user.email!,
+        name: user.name ?? null,
+        image: user.image ?? null,
+      });
     }
 
     return NextResponse.json(profile, { status: 200 });

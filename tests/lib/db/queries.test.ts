@@ -1,6 +1,6 @@
-import { getUserTasks, getTaskById, getTaskCount } from '@/lib/db/queries';
+import { getUserProfile, getUserTasks, getTaskById, getTaskCount } from '@/lib/db/queries';
 import { db } from '@/lib/db/connection';
-import type { Task } from '@/lib/db/schema';
+import type { Task, User } from '@/lib/db/schema';
 
 // Mock the database connection
 jest.mock('@/lib/db/connection', () => ({
@@ -11,9 +11,83 @@ jest.mock('@/lib/db/connection', () => ({
 
 const mockDb = db as jest.Mocked<typeof db>;
 
+const mockUser: User = {
+  id: 'user-1',
+  email: 'test@example.com',
+  name: 'Test User',
+  image: null,
+  maxTasks: 3,
+  createdAt: new Date(),
+};
+
 describe('Database Queries', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+  });
+
+  describe('getUserProfile', () => {
+    it('returns user when found by id', async () => {
+      const mockQuery = {
+        from: jest.fn().mockReturnThis(),
+        where: jest.fn().mockReturnThis(),
+        limit: jest.fn().mockResolvedValue([mockUser]),
+      };
+      mockDb.select.mockReturnValue(mockQuery as any);
+
+      const result = await getUserProfile('user-1');
+
+      expect(result).toEqual(mockUser);
+      expect(mockDb.select).toHaveBeenCalledTimes(1);
+    });
+
+    it('returns null when id not found and no email provided', async () => {
+      const mockQuery = {
+        from: jest.fn().mockReturnThis(),
+        where: jest.fn().mockReturnThis(),
+        limit: jest.fn().mockResolvedValue([]),
+      };
+      mockDb.select.mockReturnValue(mockQuery as any);
+
+      const result = await getUserProfile('unknown-id');
+
+      expect(result).toBeNull();
+      expect(mockDb.select).toHaveBeenCalledTimes(1);
+    });
+
+    it('falls back to email lookup when id not found', async () => {
+      const emptyQuery = {
+        from: jest.fn().mockReturnThis(),
+        where: jest.fn().mockReturnThis(),
+        limit: jest.fn().mockResolvedValue([]),
+      };
+      const emailQuery = {
+        from: jest.fn().mockReturnThis(),
+        where: jest.fn().mockReturnThis(),
+        limit: jest.fn().mockResolvedValue([mockUser]),
+      };
+      mockDb.select
+        .mockReturnValueOnce(emptyQuery as any)
+        .mockReturnValueOnce(emailQuery as any);
+
+      const result = await getUserProfile('new-oauth-id', 'test@example.com');
+
+      expect(result).toEqual(mockUser);
+      expect(mockDb.select).toHaveBeenCalledTimes(2);
+    });
+
+    it('returns null when neither id nor email finds a user', async () => {
+      const mockQuery = {
+        from: jest.fn().mockReturnThis(),
+        where: jest.fn().mockReturnThis(),
+        limit: jest.fn().mockResolvedValue([]),
+      };
+      mockDb.select.mockReturnValue(mockQuery as any);
+
+      const result = await getUserProfile('unknown-id', 'unknown@example.com');
+
+      expect(result).toBeNull();
+      expect(mockDb.select).toHaveBeenCalledTimes(2);
+    });
   });
 
   describe('getUserTasks', () => {

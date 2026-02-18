@@ -1,5 +1,6 @@
 import { getCurrentUser } from '@/lib/auth';
 import { getUserProfile } from '@/lib/db/queries';
+import { upsertUser } from '@/lib/db/mutations';
 import UserNav from '@/components/UserNav';
 import SettingsForm from '@/components/SettingsForm';
 import { redirect } from 'next/navigation';
@@ -14,10 +15,14 @@ export default async function SettingsPage() {
 
   // Fetch user profile
   const userId = user.id!;
-  const profile = await getUserProfile(userId);
+  let profile = await getUserProfile(userId, user.email ?? undefined);
   if (!profile) {
-    // User should exist if authenticated, but handle edge case
-    redirect('/');
+    profile = await upsertUser({
+      id: userId,
+      email: user.email!,
+      name: user.name ?? null,
+      image: user.image ?? null,
+    });
   }
 
   return (
