@@ -1,4 +1,4 @@
-import { createTask, updateTask, deleteTask, upsertUser } from '@/lib/db/mutations';
+import { createTask, updateTask, deleteTask, upsertUser, updateUserProfile } from '@/lib/db/mutations';
 import { db } from '@/lib/db/connection';
 import * as queries from '@/lib/db/queries';
 
@@ -301,6 +301,123 @@ describe('Database Mutations', () => {
       const result = await deleteTask(1, 'wrong-user');
 
       expect(result).toBe(false);
+    });
+  });
+
+  describe('updateUserProfile', () => {
+    it('updates displayName only', async () => {
+      const mockUser = {
+        id: 'user-1',
+        email: 'test@example.com',
+        name: 'Test User',
+        image: null,
+        displayName: 'New Display Name',
+        maxTasks: 3,
+        createdAt: new Date(),
+      };
+
+      const mockQuery = {
+        set: jest.fn().mockReturnThis(),
+        where: jest.fn().mockReturnThis(),
+        returning: jest.fn().mockResolvedValue([mockUser]),
+      };
+
+      mockDb.update.mockReturnValue(mockQuery as any);
+
+      const result = await updateUserProfile('user-1', {
+        displayName: 'New Display Name',
+      });
+
+      expect(result).toEqual(mockUser);
+      expect(mockQuery.set).toHaveBeenCalledWith({ displayName: 'New Display Name' });
+    });
+
+    it('updates maxTasks only', async () => {
+      const mockUser = {
+        id: 'user-1',
+        email: 'test@example.com',
+        name: 'Test User',
+        image: null,
+        displayName: 'test@example.com',
+        maxTasks: 5,
+        createdAt: new Date(),
+      };
+
+      const mockQuery = {
+        set: jest.fn().mockReturnThis(),
+        where: jest.fn().mockReturnThis(),
+        returning: jest.fn().mockResolvedValue([mockUser]),
+      };
+
+      mockDb.update.mockReturnValue(mockQuery as any);
+
+      const result = await updateUserProfile('user-1', { maxTasks: 5 });
+
+      expect(result).toEqual(mockUser);
+      expect(mockQuery.set).toHaveBeenCalledWith({ maxTasks: 5 });
+    });
+
+    it('updates both displayName and maxTasks', async () => {
+      const mockUser = {
+        id: 'user-1',
+        email: 'test@example.com',
+        name: 'Test User',
+        image: null,
+        displayName: 'Custom Name',
+        maxTasks: 7,
+        createdAt: new Date(),
+      };
+
+      const mockQuery = {
+        set: jest.fn().mockReturnThis(),
+        where: jest.fn().mockReturnThis(),
+        returning: jest.fn().mockResolvedValue([mockUser]),
+      };
+
+      mockDb.update.mockReturnValue(mockQuery as any);
+
+      const result = await updateUserProfile('user-1', {
+        displayName: 'Custom Name',
+        maxTasks: 7,
+      });
+
+      expect(result).toEqual(mockUser);
+      expect(mockQuery.set).toHaveBeenCalledWith({
+        displayName: 'Custom Name',
+        maxTasks: 7,
+      });
+    });
+
+    it('throws error when maxTasks is less than 1', async () => {
+      await expect(
+        updateUserProfile('user-1', { maxTasks: 0 })
+      ).rejects.toThrow('Max tasks must be between 1 and 10');
+
+      expect(mockDb.update).not.toHaveBeenCalled();
+    });
+
+    it('throws error when maxTasks is greater than 10', async () => {
+      await expect(
+        updateUserProfile('user-1', { maxTasks: 11 })
+      ).rejects.toThrow('Max tasks must be between 1 and 10');
+
+      expect(mockDb.update).not.toHaveBeenCalled();
+    });
+
+    it('returns null when user not found', async () => {
+      const mockQuery = {
+        set: jest.fn().mockReturnThis(),
+        where: jest.fn().mockReturnThis(),
+        returning: jest.fn().mockResolvedValue([]),
+      };
+
+      mockDb.update.mockReturnValue(mockQuery as any);
+
+      const result = await updateUserProfile('nonexistent-user', {
+        displayName: 'Test',
+      });
+
+      expect(result).toBeNull();
     });
   });
 });
