@@ -1,5 +1,7 @@
 export { auth as middleware } from "@/auth"
 
 export const config = {
-  matcher: ["/((?!api|_next/static|_next/image|favicon.ico|login).*)"],
+  // Protect /settings but allow root (/) to be public
+  // Root page will handle its own conditional rendering
+  matcher: ["/settings/:path*"],
 }
