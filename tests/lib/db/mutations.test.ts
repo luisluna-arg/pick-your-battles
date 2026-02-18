@@ -419,5 +419,82 @@ describe('Database Mutations', () => {
 
       expect(result).toBeNull();
     });
+
+    it('allows empty string for displayName', async () => {
+      const mockUser = {
+        id: 'user-1',
+        email: 'test@example.com',
+        name: 'Test User',
+        image: null,
+        displayName: '',
+        maxTasks: 3,
+        createdAt: new Date(),
+      };
+
+      const mockQuery = {
+        set: jest.fn().mockReturnThis(),
+        where: jest.fn().mockReturnThis(),
+        returning: jest.fn().mockResolvedValue([mockUser]),
+      };
+
+      mockDb.update.mockReturnValue(mockQuery as any);
+
+      const result = await updateUserProfile('user-1', {
+        displayName: '',
+      });
+
+      expect(result).toEqual(mockUser);
+      expect(mockQuery.set).toHaveBeenCalledWith({ displayName: '' });
+    });
+
+    it('accepts boundary value maxTasks = 1', async () => {
+      const mockUser = {
+        id: 'user-1',
+        email: 'test@example.com',
+        name: 'Test User',
+        image: null,
+        displayName: 'test@example.com',
+        maxTasks: 1,
+        createdAt: new Date(),
+      };
+
+      const mockQuery = {
+        set: jest.fn().mockReturnThis(),
+        where: jest.fn().mockReturnThis(),
+        returning: jest.fn().mockResolvedValue([mockUser]),
+      };
+
+      mockDb.update.mockReturnValue(mockQuery as any);
+
+      const result = await updateUserProfile('user-1', { maxTasks: 1 });
+
+      expect(result).toEqual(mockUser);
+      expect(mockQuery.set).toHaveBeenCalledWith({ maxTasks: 1 });
+    });
+
+    it('accepts boundary value maxTasks = 10', async () => {
+      const mockUser = {
+        id: 'user-1',
+        email: 'test@example.com',
+        name: 'Test User',
+        image: null,
+        displayName: 'test@example.com',
+        maxTasks: 10,
+        createdAt: new Date(),
+      };
+
+      const mockQuery = {
+        set: jest.fn().mockReturnThis(),
+        where: jest.fn().mockReturnThis(),
+        returning: jest.fn().mockResolvedValue([mockUser]),
+      };
+
+      mockDb.update.mockReturnValue(mockQuery as any);
+
+      const result = await updateUserProfile('user-1', { maxTasks: 10 });
+
+      expect(result).toEqual(mockUser);
+      expect(mockQuery.set).toHaveBeenCalledWith({ maxTasks: 10 });
+    });
   });
 });

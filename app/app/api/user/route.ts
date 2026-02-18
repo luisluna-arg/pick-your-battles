@@ -2,6 +2,30 @@ import { NextResponse } from 'next/server';
 import { getCurrentUser } from '@/lib/auth';
 import { updateUserProfile } from '@/lib/db/mutations';
 
+/**
+ * PATCH /api/user
+ *
+ * Update the authenticated user's profile settings.
+ *
+ * Request Body:
+ * {
+ *   displayName?: string,  // User's display name (max 50 characters, empty string allowed)
+ *   maxTasks?: number      // Maximum concurrent tasks (integer, range 1-10)
+ * }
+ *
+ * Responses:
+ * - 200: Success - returns updated user object
+ * - 400: Bad Request - invalid input (type error, out of range, too long)
+ * - 401: Unauthorized - user not authenticated
+ * - 404: Not Found - user doesn't exist in database
+ * - 500: Internal Server Error - unexpected error
+ *
+ * Security:
+ * - Requires authentication (session-based via Auth.js)
+ * - Users can only update their own profile
+ * - Input validation prevents SQL injection and XSS
+ * - Rate limiting handled by Vercel infrastructure
+ */
 export async function PATCH(request: Request) {
   try {
     // Get authenticated user
