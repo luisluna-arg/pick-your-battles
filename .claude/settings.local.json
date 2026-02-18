@@ -21,7 +21,11 @@
       "Bash(npm test:*)",
       "Bash(npx jest:*)",
       "Bash(powershell -Command:*)",
-      "Bash(node -e:*)"
+      "Bash(node -e:*)",
+      "Bash(echo:*)",
+      "Bash(npx eslint:*)",
+      "Bash(npx next lint)",
+      "Bash(npx next lint:*)"
     ]
   }
 }
