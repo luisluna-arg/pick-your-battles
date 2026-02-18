@@ -106,7 +106,19 @@ Use these files to implement the feature:
 
 IMPORTANT: Execute every step in order, top to bottom.
 
-<list step by step tasks as h3 headers plus bullet points. use as many h3 headers as needed to implement the feature. Order matters, start with the foundational shared changes required then move on to the specific implementation. Include creating tests throughout the implementation process.>
+<list step by step tasks as h3 headers plus bullet points. use as many h3 headers as needed to implement the feature. Order matters, start with the foundational shared changes required then move on to the specific implementation.>
+
+**CRITICAL: Include testing as explicit steps:**
+- If no test framework exists, add a step EARLY in the plan to set up Jest/Vitest
+- After implementing each major piece of functionality, add a step to write tests for it
+- Tests should be written DURING implementation, not after
+- Example structure:
+  - Step 1: Set up test framework (if needed)
+  - Step 2-4: Implement core functionality
+  - Step 5: Write unit tests for core functionality (REQUIRED)
+  - Step 6-8: Implement additional features
+  - Step 9: Write unit tests for additional features (REQUIRED)
+  - Step 10: Run all validation commands including npm test
 
 <If the feature affects UI, include a task to create a E2E test file (like `.claude/commands/e2e/test_basic_query.md` and `.claude/commands/e2e/test_complex_query.md`) as one of your early tasks. That e2e test should validate the feature works as expected, be specific with the steps to demonstrate the new functionality. We want the minimal set of steps to validate the feature works as expected and screen shots to prove it if possible.>
 

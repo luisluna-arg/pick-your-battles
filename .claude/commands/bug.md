@@ -95,7 +95,14 @@ Use these files to fix the bug:
 
 IMPORTANT: Execute every step in order, top to bottom.
 
-<list step by step tasks as h3 headers plus bullet points. use as many h3 headers as needed to fix the bug. Order matters, start with the foundational shared changes required to fix the bug then move on to the specific changes required to fix the bug. Include tests that will validate the bug is fixed with zero regressions.>
+<list step by step tasks as h3 headers plus bullet points. use as many h3 headers as needed to fix the bug. Order matters, start with the foundational shared changes required to fix the bug then move on to the specific changes required to fix the bug.>
+
+**CRITICAL: Testing is mandatory for bug fixes:**
+- If no test framework exists, add a step EARLY to set up Jest/Vitest
+- MUST include a step to write a failing test that reproduces the bug BEFORE fixing it
+- After fixing the bug, verify the test now passes
+- Add regression tests to prevent the bug from reoccurring
+- Run `npm test` and ensure all tests pass before committing
 
 <If the bug affects UI, include a task to create a E2E test file. Your task should look like: "Read `.claude/commands/e2e/test_basic_query.md` and `.claude/commands/e2e/test_complex_query.md` and create a new E2E test file in `.claude/commands/e2e/test_<descriptive_name>.md` that validates the bug is fixed, be specific with the steps to prove the bug is fixed. We want the minimal set of steps to validate the bug is fixed and screen shots to prove it if possible.">
 

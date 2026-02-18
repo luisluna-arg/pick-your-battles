@@ -73,7 +73,14 @@ Use these files to resolve the chore:
 
 IMPORTANT: Execute every step in order, top to bottom.
 
-<list step by step tasks as h3 headers plus bullet points. use as many h3 headers as needed to accomplish the chore. Order matters, start with the foundational shared changes required to fix the chore then move on to the specific changes required to fix the chore. Your last step should be running the `Validation Commands` to validate the chore is complete with zero regressions.>
+<list step by step tasks as h3 headers plus bullet points. use as many h3 headers as needed to accomplish the chore. Order matters, start with the foundational shared changes required to fix the chore then move on to the specific changes required to fix the chore.>
+
+**Testing requirement for chores:**
+- If the chore involves code changes (not just docs/config), tests are REQUIRED
+- If no test framework exists and code is being modified, add a step to set up Jest/Vitest first
+- Write or update tests to cover any code changes
+- Run `npm test` to ensure all tests pass
+- Your last step should be running all `Validation Commands`
 
 ## Validation Commands
 
