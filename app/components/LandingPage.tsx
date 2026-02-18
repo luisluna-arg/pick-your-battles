@@ -10,19 +10,19 @@ export default function LandingPage() {
             Pick Your Battles
           </h1>
           <p className="mx-auto max-w-2xl text-xl text-zinc-600 dark:text-zinc-400">
-            Focus on what matters. Limit yourself to 3 tasks at a time.
+            Focus on what matters. Limit yourself to a few tasks at a time — 3 by default, customizable to fit your workflow.
           </p>
         </div>
 
         {/* Value Proposition */}
         <div className="rounded-lg border border-zinc-200 bg-white p-8 shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
           <h2 className="mb-4 text-2xl font-bold text-zinc-900 dark:text-zinc-50">
-            Why Only 3 Tasks?
+            Why Limit Your Tasks?
           </h2>
           <p className="mb-6 text-zinc-600 dark:text-zinc-400">
             Overwhelming task lists lead to paralysis and procrastination. By forcing yourself to
-            choose only 3 tasks at a time, you&apos;re compelled to ruthlessly prioritize what truly
-            matters. Complete a task to make room for the next one.
+            choose only a few tasks at a time (3 by default), you&apos;re compelled to ruthlessly prioritize what truly
+            matters. Complete a task to make room for the next one. Your limit is yours to set.
           </p>
           <div className="grid gap-4 sm:grid-cols-3">
             <div className="text-center">
@@ -83,7 +83,7 @@ export default function LandingPage() {
                   Choose your battles
                 </h3>
                 <p className="text-sm text-zinc-600 dark:text-zinc-400">
-                  Add up to 3 tasks. The system won&apos;t let you add more until you complete one.
+                  Add tasks up to your configured limit (default: 3). The system won&apos;t let you add more until you complete one.
                 </p>
               </div>
             </div>
