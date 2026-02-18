@@ -1,0 +1,62 @@
+name: Database Migrations
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  migrate:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22.x'
+          cache: 'npm'
+
+      - name: Install root dependencies
+        run: npm ci
+
+      - name: Install app dependencies
+        run: npm ci
+        working-directory: ./app
+
+      - name: Run database migrations
+        id: migrate
+        continue-on-error: true
+        working-directory: ./app
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+        run: npm run db:migrate
+
+      - name: Create bug issue on migration failure
+        if: steps.migrate.outcome == 'failure'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh issue create \
+            --title "Database migration failed on deployment" \
+            --label "bug" \
+            --body "## Migration Failure
+
+          Database migrations failed during automated deployment to main.
+
+          **Workflow Run:** ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+
+          **Commit:** ${{ github.sha }}
+
+          **Branch:** ${{ github.ref_name }}
+
+          **Error:** See workflow logs for details
+
+          **Action Required:** Investigate and fix the migration issue immediately."
+
+      - name: Fail workflow if migrations failed
+        if: steps.migrate.outcome == 'failure'
+        run: exit 1

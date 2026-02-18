@@ -151,19 +151,61 @@ Both queries should return empty results (no rows yet), but should not error.
 - This is expected behavior! You can only have 3 tasks at a time
 - Complete or delete an existing task to make room for a new one
 
+## Automated Migrations in CI/CD
+
+Database migrations run automatically on every deployment to the main branch via GitHub Actions.
+
+### How It Works
+
+- **Trigger**: Automatically runs when code is pushed to `main` (after PR merges)
+- **Workflow**: `.github/workflows/migrate.yml`
+- **Database Access**: Uses `DATABASE_URL` from GitHub Secrets
+- **Success**: Workflow completes silently, deployment continues
+- **Failure**: Automatically creates a bug issue with:
+  - Workflow run link for debugging
+  - Commit SHA and branch information
+  - Error context from migration logs
+
+### GitHub Secrets Configuration
+
+Ensure `DATABASE_URL` is configured in repository secrets:
+
+1. Go to repository Settings → Secrets and variables → Actions
+2. Add `DATABASE_URL` with your Neon connection string
+3. The workflow will use this to connect to the database
+
+### Manual Trigger
+
+You can manually trigger migrations via GitHub Actions:
+
+1. Go to Actions tab in GitHub
+2. Select "Database Migrations" workflow
+3. Click "Run workflow"
+4. Select the main branch and run
+
+### Migration Failure Handling
+
+If migrations fail:
+- Workflow reports failure status
+- Bug issue is auto-created with label `bug`
+- Issue includes workflow run URL for debugging
+- Fix the migration issue and push the fix to main
+- Workflow will retry on next push
+
 ## Production Deployment
 
 When deploying to Vercel:
 
-1. Add `DATABASE_URL` to Vercel environment variables:
-   - Go to your Vercel project settings
-   - Navigate to "Environment Variables"
+1. Add `DATABASE_URL` to both Vercel and GitHub Secrets:
+   - **Vercel**: Project Settings → Environment Variables
+   - **GitHub**: Repository Settings → Secrets and variables → Actions
    - Add `DATABASE_URL` with your Neon connection string
    - Also add `AUTH_SECRET`, `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`
 
-2. Run migrations in production:
-   - Deploy your app first
-   - Run migrations via Vercel CLI or manually via Neon SQL Editor
+2. Migrations run automatically:
+   - When you merge a PR to main, GitHub Actions runs migrations
+   - Vercel deployment happens in parallel
+   - If migrations fail, a bug issue is created automatically
 
 3. Neon will automatically handle connection pooling and scaling
 
