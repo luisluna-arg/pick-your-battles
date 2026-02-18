@@ -161,7 +161,7 @@ describe('Database Mutations', () => {
       });
 
       expect(result).toEqual(mockTask);
-      expect(mockGetUserProfile).toHaveBeenCalledWith('user-1');
+      expect(mockGetUserProfile).toHaveBeenCalledWith('user-1', undefined);
       expect(mockGetTaskCount).toHaveBeenCalledWith('user-1');
     });
 
@@ -216,6 +216,39 @@ describe('Database Mutations', () => {
       ).rejects.toThrow('User not found');
 
       expect(mockDb.insert).not.toHaveBeenCalled();
+    });
+
+    it('passes email to getUserProfile for OAuth ID fallback', async () => {
+      mockGetUserProfile.mockResolvedValue({
+        id: 'user-1',
+        email: 'test@example.com',
+        name: 'Test User',
+        image: null,
+        maxTasks: 3,
+        createdAt: new Date(),
+      });
+      mockGetTaskCount.mockResolvedValue(0);
+
+      const mockTask = {
+        id: 1,
+        userId: 'user-1',
+        title: 'T',
+        description: null,
+        status: 'pending',
+        position: 1,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      };
+
+      const mockQuery = {
+        values: jest.fn().mockReturnThis(),
+        returning: jest.fn().mockResolvedValue([mockTask]),
+      };
+      mockDb.insert.mockReturnValue(mockQuery as any);
+
+      await createTask('user-1', { title: 'T', position: 1 }, 'test@example.com');
+
+      expect(mockGetUserProfile).toHaveBeenCalledWith('user-1', 'test@example.com');
     });
 
     it('allows task creation with maxTasks=1 boundary', async () => {

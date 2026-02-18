@@ -59,7 +59,7 @@ export async function POST(request: NextRequest) {
       description: body.description || null,
       position: body.position,
       status: body.status || 'pending',
-    });
+    }, session.user.email ?? undefined);
 
     return NextResponse.json(task, { status: 201 });
   } catch (error) {

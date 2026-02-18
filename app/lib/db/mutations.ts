@@ -34,10 +34,11 @@ export async function upsertUser(data: InsertUser): Promise<User> {
  */
 export async function createTask(
   userId: string,
-  data: Omit<InsertTask, 'userId'>
+  data: Omit<InsertTask, 'userId'>,
+  email?: string
 ): Promise<Task> {
   // Get user profile to check their personal task limit
-  const user = await getUserProfile(userId);
+  const user = await getUserProfile(userId, email);
   if (!user) {
     throw new Error('User not found');
   }
