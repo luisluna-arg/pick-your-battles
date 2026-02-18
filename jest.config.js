@@ -5,6 +5,8 @@ module.exports = {
   testMatch: ['**/__tests__/**/*.ts?(x)', '**/?(*.)+(spec|test).ts?(x)'],
   moduleNameMapper: {
     '^@/(.*)$': '<rootDir>/app/$1',
+    '^next/link$': '<rootDir>/__mocks__/next-link.js',
+    '^next/image$': '<rootDir>/__mocks__/next-image.js',
   },
   setupFilesAfterEnv: ['<rootDir>/jest.setup.js'],
   collectCoverageFrom: [

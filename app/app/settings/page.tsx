@@ -3,6 +3,7 @@ import { getUserProfile } from '@/lib/db/queries';
 import UserNav from '@/components/UserNav';
 import SettingsForm from '@/components/SettingsForm';
 import { redirect } from 'next/navigation';
+import Link from 'next/link';
 
 export default async function SettingsPage() {
   // Get authenticated user
@@ -31,6 +32,12 @@ export default async function SettingsPage() {
       {/* Settings Content */}
       <div className="mx-auto max-w-4xl px-4 py-8">
         <div className="mb-8">
+          <Link
+            href="/"
+            className="mb-6 inline-flex items-center text-sm text-zinc-600 transition-colors hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-50"
+          >
+            ← Dashboard
+          </Link>
           <h1 className="mb-2 text-3xl font-bold tracking-tight text-zinc-900 dark:text-zinc-50">
             Settings
           </h1>

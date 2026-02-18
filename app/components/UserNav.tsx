@@ -1,5 +1,6 @@
 import { auth, signOut } from "@/auth"
 import Image from "next/image"
+import Link from "next/link"
 
 export default async function UserNav() {
   const session = await auth()
@@ -26,6 +27,13 @@ export default async function UserNav() {
           className="rounded-full border-2 border-zinc-200 dark:border-zinc-800"
         />
       )}
+
+      <Link
+        href="/settings"
+        className="rounded-lg border border-zinc-200 bg-white px-4 py-2 text-sm font-medium text-zinc-900 transition-colors hover:bg-zinc-50 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-50 dark:hover:bg-zinc-800"
+      >
+        Settings
+      </Link>
 
       <form
         action={async () => {
