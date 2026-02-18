@@ -144,3 +144,24 @@ After creating the plan file:
 
 2. **Return the plan file path:**
    - IMPORTANT: Return exclusively the path to the plan file created and nothing else
+
+## Implementation
+
+After the plan is approved, implement it using this git workflow:
+
+1. **Sync with main:**
+   - `git fetch origin && git pull origin main`
+
+2. **Generate and create a branch:**
+   - Use `/generate_branch_name` to get a branch name for this issue
+   - `git checkout -b <branch-name>`
+
+3. **Implement the fix on the branch:**
+   - Follow the Step by Step Tasks in the plan
+   - Commit changes on the branch (NOT on main)
+
+4. **Push the branch:**
+   - `git push -u origin <branch-name>`
+
+5. **Open a Pull Request:**
+   - Use `/pull_request` to open a PR from the branch to main
