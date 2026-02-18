@@ -12,61 +12,79 @@ const mockTask = {
   updatedAt: new Date().toISOString(),
 }
 
+const mockUser = { id: 'user-1', maxTasks: 3, email: 'test@example.com', name: 'Test', displayName: 'Test', image: null }
+
 describe('Dashboard', () => {
   beforeEach(() => {
     jest.clearAllMocks()
   })
 
-  it('calls POST /api/tasks and refreshes task list on add', async () => {
-    const fetchMock = jest
+  it('fetches user profile and renders correct number of slots', async () => {
+    global.fetch = jest
       .fn()
-      // Initial GET /api/tasks → empty
-      .mockResolvedValueOnce({
-        ok: true,
-        json: async () => [],
-      })
-      // POST /api/tasks → success
-      .mockResolvedValueOnce({
-        ok: true,
-        json: async () => mockTask,
-      })
-      // Second GET /api/tasks → returns new task
-      .mockResolvedValueOnce({
-        ok: true,
-        json: async () => [mockTask],
-      })
-
-    global.fetch = fetchMock
+      .mockResolvedValueOnce({ ok: true, json: async () => [] })          // GET /api/tasks
+      .mockResolvedValueOnce({ ok: true, json: async () => ({ ...mockUser, maxTasks: 5 }) }) // GET /api/user
 
     render(<Dashboard />)
 
-    // Wait for initial load to complete (empty tasks)
     await waitFor(() => {
       expect(screen.queryByText('Loading your tasks...')).not.toBeInTheDocument()
     })
 
-    // Trigger handleAddTask directly by calling the POST + refresh
-    // This verifies the fetch sequence was called correctly
+    // 5 slots should be rendered (each has an "Add task to slot N" button)
+    const slots = screen.getAllByLabelText(/Add task to slot \d+/)
+    expect(slots).toHaveLength(5)
+  })
+
+  it('defaults to 3 slots when user fetch fails', async () => {
+    global.fetch = jest
+      .fn()
+      .mockResolvedValueOnce({ ok: true, json: async () => [] })     // GET /api/tasks
+      .mockResolvedValueOnce({ ok: false, json: async () => ({}) })   // GET /api/user fails
+
+    render(<Dashboard />)
+
     await waitFor(() => {
-      expect(fetchMock).toHaveBeenCalledWith('/api/tasks')
+      expect(screen.queryByText('Loading your tasks...')).not.toBeInTheDocument()
+    })
+
+    const slots = screen.getAllByLabelText(/Add task to slot \d+/)
+    expect(slots).toHaveLength(3)
+  })
+
+  it('subtitle reflects maxTasks value', async () => {
+    global.fetch = jest
+      .fn()
+      .mockResolvedValueOnce({ ok: true, json: async () => [] })
+      .mockResolvedValueOnce({ ok: true, json: async () => ({ ...mockUser, maxTasks: 5 }) })
+
+    render(<Dashboard />)
+
+    await waitFor(() => {
+      expect(screen.getByText(/Limit yourself to 5 tasks at a time\./)).toBeInTheDocument()
     })
   })
 
-  it('handleAddTask throws on API error so TaskSlot can display it', async () => {
-    const fetchMock = jest
+  it('subtitle shows singular form for maxTasks = 1', async () => {
+    global.fetch = jest
       .fn()
-      // Initial GET /api/tasks
-      .mockResolvedValueOnce({
-        ok: true,
-        json: async () => [],
-      })
-      // POST /api/tasks → 400 error
-      .mockResolvedValueOnce({
-        ok: false,
-        json: async () => ({ error: 'Task limit reached. Complete a task before adding a new one.' }),
-      })
+      .mockResolvedValueOnce({ ok: true, json: async () => [] })
+      .mockResolvedValueOnce({ ok: true, json: async () => ({ ...mockUser, maxTasks: 1 }) })
 
-    global.fetch = fetchMock
+    render(<Dashboard />)
+
+    await waitFor(() => {
+      expect(screen.getByText(/Limit yourself to 1 task at a time\./)).toBeInTheDocument()
+    })
+  })
+
+  it('calls POST /api/tasks and refreshes task list on add', async () => {
+    global.fetch = jest
+      .fn()
+      .mockResolvedValueOnce({ ok: true, json: async () => [] })          // GET /api/tasks
+      .mockResolvedValueOnce({ ok: true, json: async () => mockUser })    // GET /api/user
+      .mockResolvedValueOnce({ ok: true, json: async () => mockTask })    // POST /api/tasks
+      .mockResolvedValueOnce({ ok: true, json: async () => [mockTask] })  // GET /api/tasks refresh
 
     render(<Dashboard />)
 
@@ -74,7 +92,22 @@ describe('Dashboard', () => {
       expect(screen.queryByText('Loading your tasks...')).not.toBeInTheDocument()
     })
 
-    // Initial fetch was called
-    expect(fetchMock).toHaveBeenCalledWith('/api/tasks')
+    expect(global.fetch).toHaveBeenCalledWith('/api/tasks')
+    expect(global.fetch).toHaveBeenCalledWith('/api/user')
+  })
+
+  it('handleAddTask throws on API error so TaskSlot can display it', async () => {
+    global.fetch = jest
+      .fn()
+      .mockResolvedValueOnce({ ok: true, json: async () => [] })       // GET /api/tasks
+      .mockResolvedValueOnce({ ok: true, json: async () => mockUser }) // GET /api/user
+
+    render(<Dashboard />)
+
+    await waitFor(() => {
+      expect(screen.queryByText('Loading your tasks...')).not.toBeInTheDocument()
+    })
+
+    expect(global.fetch).toHaveBeenCalledWith('/api/tasks')
   })
 })
