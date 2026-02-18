@@ -33,7 +33,12 @@ This project is built using **agentic coding practices** — AI agents handle th
 
 ## Getting Started
 
+### Main Application
+
 ```bash
+# Navigate to app directory
+cd app
+
 # Install dependencies
 npm install
 
@@ -49,19 +54,46 @@ npm start
 
 Open [http://localhost:3000](http://localhost:3000) to see the app.
 
+### AI Developer Workflows
+
+The `adws/` directory contains TypeScript scripts for AI-assisted development workflows (planning, building, testing, reviewing).
+
+```bash
+# Install ADW dependencies
+cd adws
+npm install
+
+# Verify TypeScript compilation
+npm run type-check
+
+# Build TypeScript to JavaScript
+npm run build
+```
+
+**Dependencies:**
+- Node.js built-in modules (fs, path, child_process)
+- External: `glob`, `uuid`, `dotenv`, `@aws-sdk/client-s3`
+
+**Environment Variables:**
+Configure in `.env` file:
+- `ANTHROPIC_API_KEY` - Required for Claude Code CLI
+- `GITHUB_PAT` - GitHub personal access token (for gh CLI)
+- `CLAUDE_CODE_PATH` - Path to Claude Code CLI (defaults to `claude`)
+
 ---
 
 ## Project Structure
 
 ```
 pick-your-battles/
-├── app/               # Next.js app router pages and components
-├── components/        # React components
-├── lib/               # Utility functions and shared logic
-├── public/            # Static assets
+├── app/               # Next.js application
+│   ├── components/    # React components
+│   ├── lib/           # Utility functions and shared logic
+│   └── ...            # Routes and pages
 ├── adws/              # AI Developer Workflow scripts
-├── specs/             # Implementation plans and specifications
-└── agents/logs/       # Agent execution logs
+├── plans/             # Tracked implementation plans (evidence)
+├── specs/             # Agent-generated artifacts (gitignored)
+└── agents/            # Agent execution logs
 ```
 
 ---

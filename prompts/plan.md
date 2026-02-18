@@ -12,7 +12,7 @@ $ARGUMENTS
 - Read `CLAUDE.md` and `README.md` for project context.
 - Use your reasoning model: THINK HARD about the approach.
 - Determine if this is a **chore**, **bug**, or **feature** and structure accordingly.
-- Write the plan to `specs/[descriptive-name].md`.
+- Write the plan to `plans/[descriptive-name].md`.
 
 ## Plan Structure
 

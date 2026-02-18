@@ -15,14 +15,17 @@
 
 ```
 project/
-├── app/               # Application source code
-├── tests/             # Test files (mirrors app/ structure)
-├── adws/              # AI Developer Workflows (automation scripts)
-├── prompts/           # Reusable slash commands
-├── templates/         # Meta prompts that generate plans
-├── specs/             # Generated plans
-├── agents/logs/       # Agent execution logs
-└── CLAUDE.md          # This file
+├── app/                    # Next.js application (routes, components, lib)
+├── .claude/commands/       # Slash commands (bug, feature, chore, classify_issue)
+├── adws/                   # AI Developer Workflows (TypeScript automation scripts)
+│   ├── adw_modules/        # Core workflow modules
+│   └── low_level/          # Executable workflow scripts
+├── prompts/                # Workflow templates (build, implement, plan)
+├── templates/              # Plan templates (bug, chore, feature)
+├── plans/                  # Tracked implementation plans (evidence)
+├── specs/                  # Agent-generated artifacts (gitignored)
+├── agents/                 # Agent execution logs and state
+└── CLAUDE.md               # This file
 ```
 
 ## Getting Started
@@ -37,6 +40,15 @@ npm run dev
 # Run tests
 npm test
 ```
+
+## Environment Configuration
+
+- **GitHub Token**: `GH_TOKEN` is automatically available in all shell sessions (loaded from `~/.bashrc`)
+  - Use `gh` commands directly without authentication
+  - Token is sourced from `.env` but no need to read it manually
+- **Git Config**: Local git config is set for this repo only (`user.email` and `user.name`)
+  - Commits will automatically use the project-specific credentials
+  - Your global git config remains unchanged
 
 ## Conventions
 
@@ -53,7 +65,7 @@ npm test
 |---------|---------|
 | `/prime` | Initialize agent understanding of this codebase |
 | `/start` | Bootstrap and run the application |
-| `/implement` | Execute a plan from `specs/` |
+| `/implement` | Execute a plan from `plans/` |
 | `/build` | Quick patch: research → implement → test → commit |
 | `/plan` | Generate a technical plan from a task description |
 
