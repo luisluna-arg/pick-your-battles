@@ -51,9 +51,10 @@ describe('Auth Utility Functions', () => {
   })
 
   describe('requireAuth', () => {
-    it('returns session when authenticated', async () => {
+    it('returns session when authenticated with user ID', async () => {
       const mockSession = {
         user: {
+          id: 'user-123',
           name: 'Test User',
           email: 'test@example.com',
         },
@@ -77,8 +78,11 @@ describe('Auth Utility Functions', () => {
       expect(mockedAuth).toHaveBeenCalledTimes(1)
     })
 
-    it('throws error when session has no user', async () => {
+    it('throws error when session has no user ID', async () => {
       mockedAuth.mockResolvedValue({
+        user: {
+          email: 'test@example.com',
+        },
         expires: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
       } as any)
 

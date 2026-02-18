@@ -1,6 +1,42 @@
+'use client';
+
+import { useEffect, useState } from 'react';
 import TaskSlot from './TaskSlot';
+import type { Task } from '@/lib/db/schema';
 
 export default function Dashboard() {
+  const [tasks, setTasks] = useState<Task[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    async function fetchTasks() {
+      try {
+        setLoading(true);
+        const response = await fetch('/api/tasks');
+
+        if (!response.ok) {
+          throw new Error('Failed to fetch tasks');
+        }
+
+        const data = await response.json();
+        setTasks(data);
+      } catch (err) {
+        console.error('Error fetching tasks:', err);
+        setError(err instanceof Error ? err.message : 'Failed to load tasks');
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    fetchTasks();
+  }, []);
+
+  // Map tasks to slots (positions 1, 2, 3)
+  const getTaskForSlot = (slotNumber: number): Task | undefined => {
+    return tasks.find((task) => task.position === slotNumber);
+  };
+
   return (
     <div className="flex min-h-screen items-center justify-center bg-zinc-50 p-4 dark:bg-zinc-950">
       <div className="w-full max-w-4xl">
@@ -14,12 +50,28 @@ export default function Dashboard() {
           </p>
         </div>
 
+        {/* Loading State */}
+        {loading && (
+          <div className="text-center">
+            <p className="text-zinc-600 dark:text-zinc-400">Loading your tasks...</p>
+          </div>
+        )}
+
+        {/* Error State */}
+        {error && !loading && (
+          <div className="rounded-lg bg-red-50 p-4 text-center dark:bg-red-900/20">
+            <p className="text-red-800 dark:text-red-400">{error}</p>
+          </div>
+        )}
+
         {/* Task Slots */}
-        <div className="grid gap-6 md:grid-cols-3">
-          <TaskSlot slotNumber={1} />
-          <TaskSlot slotNumber={2} />
-          <TaskSlot slotNumber={3} />
-        </div>
+        {!loading && !error && (
+          <div className="grid gap-6 md:grid-cols-3">
+            <TaskSlot slotNumber={1} task={getTaskForSlot(1)} />
+            <TaskSlot slotNumber={2} task={getTaskForSlot(2)} />
+            <TaskSlot slotNumber={3} task={getTaskForSlot(3)} />
+          </div>
+        )}
       </div>
     </div>
   );
