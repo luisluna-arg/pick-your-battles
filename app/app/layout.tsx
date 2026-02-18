@@ -15,7 +15,7 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: "Pick Your Battles",
-  description: "A minimalist productivity tool that enforces focus by limiting users to 3 concurrent tasks.",
+  description: "A minimalist productivity tool that enforces focus by limiting users to a configurable number of concurrent tasks.",
 };
 
 export default function RootLayout({
