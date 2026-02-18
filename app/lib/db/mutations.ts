@@ -1,10 +1,7 @@
 import { eq, and } from 'drizzle-orm';
 import { db } from './connection';
 import { users, tasks, type User, type Task, type InsertUser, type InsertTask } from './schema';
-import { getTaskCount } from './queries';
-
-// Default task limit (can be made configurable per user in future)
-const DEFAULT_TASK_LIMIT = 3;
+import { getTaskCount, getUserProfile } from './queries';
 
 /**
  * Insert or update user on login
@@ -13,13 +10,18 @@ const DEFAULT_TASK_LIMIT = 3;
 export async function upsertUser(data: InsertUser): Promise<User> {
   const results = await db
     .insert(users)
-    .values(data)
+    .values({
+      ...data,
+      displayName: data.displayName || data.email, // Default to email if not provided
+      maxTasks: data.maxTasks ?? 3, // Default to 3 if not provided
+    })
     .onConflictDoUpdate({
       target: users.id,
       set: {
         email: data.email,
         name: data.name,
         image: data.image,
+        // Do NOT update displayName and maxTasks on subsequent logins
       },
     })
     .returning();
@@ -29,17 +31,23 @@ export async function upsertUser(data: InsertUser): Promise<User> {
 
 /**
  * Create a new task for a user
- * Enforces task limit
+ * Enforces user's personal task limit
  */
 export async function createTask(
   userId: string,
   data: Omit<InsertTask, 'userId'>
 ): Promise<Task> {
-  // Check task limit
+  // Get user profile to check their personal task limit
+  const user = await getUserProfile(userId);
+  if (!user) {
+    throw new Error('User not found');
+  }
+
+  // Check user's personal task limit
   const currentCount = await getTaskCount(userId);
-  if (currentCount >= DEFAULT_TASK_LIMIT) {
+  if (currentCount >= user.maxTasks) {
     throw new Error(
-      `Task limit reached. You can only have ${DEFAULT_TASK_LIMIT} tasks at a time.`
+      `Task limit reached. You can only have ${user.maxTasks} tasks at a time.`
     );
   }
 
