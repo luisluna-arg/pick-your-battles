@@ -34,6 +34,21 @@ Follow the `Instructions` to implement the `Plan`, then `Report` the completed w
 3. **Open a pull request:**
    - If `issue_number` exists in plan metadata, use `/pull_request <issue_number>`
    - Otherwise, manually create PR with `gh pr create` with descriptive title and body
+   - Extract the PR number from the PR URL (e.g., `https://github.com/user/repo/pull/13` → PR #13)
+
+4. **Monitor CI/CD checks and merge:**
+   - Use `gh pr view <pr_number> --json statusCheckRollup,mergeable,mergeStateStatus` to check PR status
+   - Wait for all status checks to complete:
+     - If checks are still running, wait 30 seconds and check again
+     - If checks fail:
+       - Analyze the failure using `gh pr checks <pr_number>`
+       - Fix the errors in your code
+       - Commit and push the fixes
+       - Return to monitoring checks
+     - If checks pass and PR is mergeable:
+       - Merge the PR using `gh pr merge <pr_number> --squash --delete-branch`
+       - Confirm merge was successful
+   - If the PR is blocked for non-check reasons (e.g., review required), report this to the user and wait for their action
 
 ## Plan
 
@@ -46,3 +61,7 @@ $ARGUMENTS
 - List any validation commands that were run and their results.
 - Confirm the branch name used
 - Provide the pull request URL if created
+- Report CI/CD check results and merge status:
+  - If checks passed and PR was merged, confirm successful merge
+  - If checks failed and were fixed, summarize what was fixed
+  - If PR is blocked pending review, notify the user

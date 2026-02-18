@@ -2,9 +2,15 @@
   "permissions": {
     "allow": [
       "Bash(gh issue view:*)",
+      "Bash(gh pr view:*)",
+      "Bash(gh pr checks:*)",
+      "Bash(gh pr checkout:*)",
+      "Bash(gh pr merge:*)",
+      "Bash(gh pr create:*)",
       "Bash(npx tsc --noEmit)",
       "Bash(npm run type-check:*)",
-      "Bash(npm install)"
+      "Bash(npm install)",
+      "Bash(npm run dev:*)"
     ]
   }
 }
